@@ -11,7 +11,7 @@ The script download_from_txts.py reads "any.txt" files in the same folder as its
 - Display wanted scenes with the search bar  
 - Click on "Save Ids" (the drop-down menu should be on "original")  
 - A window opens. Make a Ctrl+S
-- Save the .txt file next to the .py scripts
+- Save the .txt file next to .py scripts
 
 ## Usage
 ``` 
