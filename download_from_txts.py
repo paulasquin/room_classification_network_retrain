@@ -2,7 +2,6 @@
 # Automating scene downloading of scene id files
 
 import os
-import subprocess
 
 
 def getFiles(extension=".txt"):
@@ -26,8 +25,6 @@ def createFolder(folderName):
 
 def downloadScene(sceneId, folder):
     os.system("python download-scannet.py -o " + folder + "/ --id " + sceneId)
-    out, err = p.communicate()
-    return out.decode('utf-8')
 
 
 def main():
