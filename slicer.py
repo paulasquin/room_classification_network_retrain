@@ -111,7 +111,7 @@ def exportSlice(slice, extrema, path, width=1024, height=800):
     minX, maxX, minY, maxY, minZ, maxZ = extrema
     # Put values to a [0, width-1]*[0, height-1] domain
     # Minus width to have a "bird like" view (mirror transformation)
-    resize['x'] = width - (slice['x'] - minX) * (width - 1) / (maxX - minX)
+    resize['x'] = (width - 1) - (slice['x'] - minX) * (width - 1) / (maxX - minX)
     resize['y'] = (slice['y'] - minY) * (height - 1) / (maxY - minY)
 
     # Create a image from given coordinates :
