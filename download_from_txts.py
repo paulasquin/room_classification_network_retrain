@@ -24,7 +24,7 @@ def createFolder(folderName):
 
 
 def downloadScene(sceneId, folder):
-    os.system("python download-scannet.py -o " + folder + "/ --id " + sceneId)
+    os.system("python download-scannet.py -o " + folder + "/ --id " + sceneId + " --type _vh_clean_2.ply")
 
 
 def main():
