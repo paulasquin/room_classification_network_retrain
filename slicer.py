@@ -104,9 +104,15 @@ def getSlices(filepath, sectionsDownUp):
 
     return sliced, [minX, maxX, minY, maxY, minZ, maxZ]
 
+def createFolder(label):
+    subPath = "PNG/" + str(label.title())
+    print("Creating folder " + str(subPath))
+    os.mkdir(subPath)
+    return 0
 
-def exportSlice(slice, extrema, path, width=1024, height=800):
-    """ Write raw slice points to a .png files. Resolution can be change, default is 1024*800 """
+
+def exportSlice(slice, extrema, path, label, width=500, height=500):
+    """ Write raw slice points to a .png files. Resolution can be change, default is 500*500 """
     resize = slice.copy()
     minX, maxX, minY, maxY, minZ, maxZ = extrema
     # Put values to a [0, width-1]*[0, height-1] domain
@@ -121,7 +127,10 @@ def exportSlice(slice, extrema, path, width=1024, height=800):
     image[(resize['y'].astype(int), resize['x'].astype(int))] = [0, 0, 0]
 
     img = Image.fromarray(image, 'RGB')
-    img.save(path)
+    try:
+        img.save(path)
+    except FileNotFoundError:
+        createFolder(label)
     print(path + " exported")
     return 0
 
@@ -164,7 +173,7 @@ def generatePng(filepath, lesAltitudes, sectionWidth, label):
     sectionsDownUp = computeSections(lesAltitudes=lesAltitudes, sectionWidth=sectionWidth)
     slices, extrema = getSlices(filepath=filepath, sectionsDownUp=sectionsDownUp)
     for i in range(len(lesAltitudes)):
-        exportSlice(slice=slices[i], extrema=extrema,
+        exportSlice(slice=slices[i], extrema=extrema, label=label,
                     path=filepathPng(filepath=filepath, label=label, suffix=str(lesAltitudes[i])))
 
     # Write to out.txt
