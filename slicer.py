@@ -107,7 +107,7 @@ def getSlices(filepath, sectionsDownUp):
 
 def exportSlice(slice, extrema, path, width=1024, height=800):
     """ Write raw slice points to a .png files. Resolution can be change, default is 1024*800 """
-    resize=slice.copy()
+    resize = slice.copy()
     minX, maxX, minY, maxY, minZ, maxZ = extrema
     # Put values to a [0, width-1]*[0, height-1] domain
     # Minus width to have a "bird like" view (mirror transformation)
@@ -122,7 +122,7 @@ def exportSlice(slice, extrema, path, width=1024, height=800):
 
     img = Image.fromarray(image, 'RGB')
     img.save(path)
-    print(path + " saved")
+    print(path + " exported")
     return 0
 
 
@@ -153,21 +153,35 @@ def generatePng(filepath, lesAltitudes, sectionWidth, label):
     """ Treat information to use of given .ply file to generate png at given altitudes with given sectionWidth
     A label have to be indicated to precise if the file is a Kitchen, a bathroom, etc """
 
+    try:
+        with open("out.log", 'r') as f:
+            if filepath in f.read():
+                print(filepath + " already treated")
+                return 0
+    except FileNotFoundError:
+        print("No out.log file yet")
+
     sectionsDownUp = computeSections(lesAltitudes=lesAltitudes, sectionWidth=sectionWidth)
     slices, extrema = getSlices(filepath=filepath, sectionsDownUp=sectionsDownUp)
     for i in range(len(lesAltitudes)):
         exportSlice(slice=slices[i], extrema=extrema,
                     path=filepathPng(filepath=filepath, label=label, suffix=str(lesAltitudes[i])))
 
+    # Write to out.txt
+    with open("out.log", 'a') as f:
+        f.write(filepath + "\n")
+
 
 def main():
     for label in getLabels():
         paths = locate_files(extension="_vh_clean_2.ply", dbName=label + "_plyfiles",
                              path=relative_to_absolute_path(label.title()))
-        print(label + " : " + str(len(paths)))
+        print("--- " + label + " : " + str(len(paths)) + " ---")
         for i in range(len(paths)):
+            print("\n" + str(i+1) + "/" + str(len(paths)) + " " + str(label))
             generatePng(filepath=paths[i], lesAltitudes=lesAltitudes, sectionWidth=sectionWidth, label=label)
     return 0
+
 
 if __name__ == "__main__":
     main()
