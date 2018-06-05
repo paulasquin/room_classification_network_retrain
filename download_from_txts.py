@@ -3,11 +3,21 @@
 
 import os
 
+labelFolder = "labels/"
 
 def getFiles(extension=".txt"):
     """ Get files name with a given extension (default : .txt)
     in this directory """
+    global labelFolder
+    parentPath = os.getcwd()
+
+    # Go to labels subfolder
+    os.chdir(labelFolder)
+
+    # Get file names
     brut = os.listdir()
+    os.chdir(parentPath)
+
     ret = []
     for b in brut:
         if '.txt' in b:
@@ -18,7 +28,7 @@ def getFiles(extension=".txt"):
 def createFolder(folderName):
     """" Create a folder if it not already exists"""
     # If folder doesn't exist, we create it
-    if os.path.isdir(folderName) == False:
+    if not os.path.isdir(folderName):
         print("Creating " + str(folderName))
         os.mkdir(folderName)
 
@@ -26,6 +36,13 @@ def createFolder(folderName):
 def downloadScene(sceneId, folder):
     os.system("python download-scannet.py -o " + folder + "/ --id " + sceneId + " --type _vh_clean_2.ply")
 
+def getTxtFilePath(file):
+    """ Return txt file path considering labelFolder """
+    global labelFolder
+    path = file
+    if labelFolder != "":
+        path = labelFolder + "/" + path
+    return path
 
 def main():
     files = getFiles()
@@ -34,13 +51,15 @@ def main():
         print("--- " + str(file) + " ---")
         folders.append(file.replace(".txt", "").title())
         createFolder(folders[-1])
-        with open(file, 'r') as f:
+        with open(getTxtFilePath(file), 'r') as f:
             for line in f:
                 line = line.replace("\n", "")
                 if "id" not in line:
                     print("Downloading " + str(line))
-                    downloadScene(sceneId=line, folder=folders[-1])
-
+                    try:
+                        downloadScene(sceneId=line, folder=folders[-1])
+                    except KeyboardInterrupt:
+                        return 1
 
 if __name__ == '__main__':
     main()
