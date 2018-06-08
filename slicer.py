@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image
 import io
 
-lesAltitudes = [0.2, 0.4, 0.5, 0.7, 1]  # Altitudes around which the section will be taken
+lesAltitudes = [0.4, 0.5, 0.7]  # Altitudes around which the section will be taken
 sectionWidth = 0.04  # A section is 4 cm high
 imageFolder = "JPG"
 
