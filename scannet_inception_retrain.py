@@ -6,24 +6,27 @@ echo = ""
 
 
 def getExportNumber(tensorFolder):
+    """ Get the number of the export folder looking at already existing folders
+    Handle the presence of '_precisions' at the end of the folder name """
+
     lesDir = os.listdir(tensorFolder)
     lesExport = []
+    lesNum = []
     num = 0
     for dir in lesDir:
         if "export_" in dir:
             lesExport.append(dir)
-    if len(lesExport) != 0:
-        lesExport.sort()
+    for i in range(len(lesExport)):
         # Get number of export and add 1 to it
-        try:
-            # If we have an extension in the name
-            if lesExport[-1][7:].find("_") != -1:
-                num = 1 + int(lesExport[-1][7:7 + lesExport[-1][7:].find("_")])
-            # If there is not extension
-            else:
-                num = 1 + int(lesExport[-1][7:])
-        except ValueError:
-            num = 99
+        # If we have an extension in the name
+        if lesExport[i][7:].find("_") != -1:
+            lesNum.append(int(lesExport[i][7:7 + lesExport[i][7:].find("_")]))
+        # If there is not extension
+        else:
+            lesNum.append(int(lesExport[i][7:]))
+
+    if len(lesNum) != 0:
+        num = max(lesNum) + 1
 
     return num
 
@@ -41,8 +44,9 @@ def runRetrain():
           " --output_labels " + str(tensorFolder) + "/scannet_labels.txt" + \
           " --saved_model_dir " + exportPath + "/" + \
           " --print_misclassified_test_images" + \
-          " --validation_batch_size=-1" #+ \
-        # " --suffix -0.5" + \
+          " --validation_batch_size=-1" + \
+          " --how_many_training_steps 10000"  # + \
+    # " --suffix -0.5" + \
     global echo
     echo = cmd
     print(cmd)
