@@ -8,13 +8,22 @@ echo = ""
 def getExportNumber(tensorFolder):
     lesDir = os.listdir(tensorFolder)
     lesExport = []
+    num = 0
     for dir in lesDir:
         if "export_" in dir:
             lesExport.append(dir)
     if len(lesExport) != 0:
         lesExport.sort()
         # Get number of export and add 1 to it
-        num = 1 + int(lesExport[-1][7: 7 + lesExport[-1][7:].find("_")])
+        try:
+            # If we have an extension in the name
+            if lesExport[-1][7:].find("_") != -1:
+                num = 1 + int(lesExport[-1][7:7 + lesExport[-1][7:].find("_")])
+            # If there is not extension
+            else:
+                num = 1 + int(lesExport[-1][7:])
+        except ValueError:
+            num = 99
 
     return num
 
