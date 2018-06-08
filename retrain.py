@@ -145,7 +145,7 @@ FAKE_QUANT_OPS = ('FakeQuantWithMinMaxVars',
                   'FakeQuantWithMinMaxVarsPerChannel')
 
 
-def create_image_lists(image_dir, testing_percentage, validation_percentage):
+def create_image_lists(image_dir, testing_percentage, validation_percentage, suffix=''):
   """Builds a list of training images from the file system.
 
   Analyzes the sub folders in the image directory, splits them into stable
@@ -156,6 +156,7 @@ def create_image_lists(image_dir, testing_percentage, validation_percentage):
     image_dir: String path to a folder containing subfolders of images.
     testing_percentage: Integer percentage of the images to reserve for tests.
     validation_percentage: Integer percentage of images reserved for validation.
+    suffix: Optional ;Personal argument by Paul Asquin : Considering only particular suffix in file names
 
   Returns:
     An OrderedDict containing an entry for each label subfolder, with images
@@ -180,7 +181,7 @@ def create_image_lists(image_dir, testing_percentage, validation_percentage):
       continue
     tf.logging.info("Looking for images in '" + dir_name + "'")
     for extension in extensions:
-      file_glob = os.path.join(image_dir, dir_name, '*.' + extension)
+      file_glob = os.path.join(image_dir, dir_name, '*' + suffix + '.' + extension)
       file_list.extend(tf.gfile.Glob(file_glob))
     if not file_list:
       tf.logging.warning('No files found')
@@ -997,7 +998,8 @@ def main(_):
 
   # Look at the folder structure, and create lists of all the images.
   image_lists = create_image_lists(FLAGS.image_dir, FLAGS.testing_percentage,
-                                   FLAGS.validation_percentage)
+                                   FLAGS.validation_percentage, FLAGS.suffix)
+
   class_count = len(image_lists.keys())
   if class_count == 0:
     tf.logging.error('No valid folders of images found at ' + FLAGS.image_dir)
@@ -1329,5 +1331,12 @@ if __name__ == '__main__':
       type=str,
       default='',
       help='Where to save the exported graph.')
+
+  parser.add_argument(
+      '--suffix',
+      type=str,
+      default='',
+      help='Suffix of image files to consider.')
+
   FLAGS, unparsed = parser.parse_known_args()
   tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
