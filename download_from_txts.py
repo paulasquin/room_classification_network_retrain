@@ -4,6 +4,7 @@
 import os
 
 labelFolder = "labels/"
+plyFolder = "PLY/"
 
 def getFiles(extension=".txt"):
     """ Get files name with a given extension (default : .txt)
@@ -45,6 +46,10 @@ def getTxtFilePath(file):
     return path
 
 def main():
+    global plyFolder
+    if os.path.isdir(plyFolder) == False:
+        createFolder(plyFolder)
+    
     files = getFiles()
     folders = []
     for file in files:
@@ -57,7 +62,7 @@ def main():
                 if "id" not in line:
                     print("Downloading " + str(line))
                     try:
-                        downloadScene(sceneId=line, folder=folders[-1])
+                        downloadScene(sceneId=line, folder=plyFolder + folders[-1])
                     except KeyboardInterrupt:
                         return 1
 
