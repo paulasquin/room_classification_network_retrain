@@ -33,20 +33,26 @@ def getExportNumber(tensorFolder):
 
 def runRetrain():
     tensorFolder = "tensorflow"
-    image_dir = "JPG"
+    #image_dir = "JPG"
+    image_dir = "OLD_JPG"
     exportNumber = getExportNumber(tensorFolder)
     exportPath = str(tensorFolder) + "/export_" + str(exportNumber)
+    os.mkdir(exportPath)
+
+    print("exportPath : " + exportPath)
     if not os.path.isdir(tensorFolder):
         os.mkdir(tensorFolder)
+
+
     cmd = "python3 retrain.py" \
           " --image_dir " + str(image_dir) + \
           " --output_graph " + str(tensorFolder) + "/scannet_inception.db" + \
           " --output_labels " + str(tensorFolder) + "/scannet_labels.txt" + \
-          " --saved_model_dir " + exportPath + "/" + \
+          " --saved_model_dir " + exportPath + "/model/" + \
           " --print_misclassified_test_images" + \
           " --validation_batch_size=-1" + \
-          " --how_many_training_steps 10000"  # + \
-    # " --suffix -0.5" + \
+          " --how_many_training_steps 4000" #+ \
+          #" --suffix -1"
     global echo
     echo = cmd
     print(cmd)

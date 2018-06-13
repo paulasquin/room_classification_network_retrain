@@ -6,6 +6,7 @@ import os
 labelFolder = "labels/"
 plyFolder = "PLY/"
 
+
 def getFiles(extension=".txt"):
     """ Get files name with a given extension (default : .txt)
     in this directory """
@@ -37,6 +38,7 @@ def createFolder(folderName):
 def downloadScene(sceneId, folder):
     os.system("python download-scannet.py -o " + folder + "/ --id " + sceneId + " --type _vh_clean_2.ply")
 
+
 def getTxtFilePath(file):
     """ Return txt file path considering labelFolder """
     global labelFolder
@@ -45,11 +47,12 @@ def getTxtFilePath(file):
         path = labelFolder + "/" + path
     return path
 
+
 def main():
     global plyFolder
     if os.path.isdir(plyFolder) == False:
         createFolder(plyFolder)
-    
+
     files = getFiles()
     folders = []
     for file in files:
@@ -65,6 +68,7 @@ def main():
                         downloadScene(sceneId=line, folder=plyFolder + folders[-1])
                     except KeyboardInterrupt:
                         return 1
+
 
 if __name__ == '__main__':
     main()
