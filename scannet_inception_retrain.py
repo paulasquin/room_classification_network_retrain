@@ -1,9 +1,7 @@
 import os
 import threading
 import subprocess
-
-echo = ""
-
+import time
 
 def getExportNumber(tensorFolder):
     """ Get the number of the export folder looking at already existing folders
@@ -33,8 +31,7 @@ def getExportNumber(tensorFolder):
 
 def runRetrain():
     tensorFolder = "tensorflow"
-    #image_dir = "JPG"
-    image_dir = "OLD_JPG"
+    image_dir = "JPG_Scannet_Matterport"
     exportNumber = getExportNumber(tensorFolder)
     exportPath = str(tensorFolder) + "/export_" + str(exportNumber)
     os.mkdir(exportPath)
@@ -45,29 +42,33 @@ def runRetrain():
 
 
     cmd = "python3 retrain.py" \
-          " --image_dir " + str(image_dir) + \
-          " --output_graph " + str(tensorFolder) + "/scannet_inception.db" + \
-          " --output_labels " + str(tensorFolder) + "/scannet_labels.txt" + \
+          " --image_dir " + image_dir + \
           " --saved_model_dir " + exportPath + "/model/" + \
-          " --print_misclassified_test_images" + \
-          " --validation_batch_size=-1" + \
-          " --how_many_training_steps 4000" #+ \
-          #" --suffix -1"
-    global echo
-    echo = cmd
+          " --validation_batch_size -1" + \
+          " --how_many_training_steps 4000" + \
+          " --suffix -0.5" \
+          " --learning_rate 0.01" + \
+          " --validation_percentage 15" + \
+          " --testing_percentage 0" + \
+          " --path_mislabeled_names " + exportPath + \
+          " --bottleneck_dir /media/nas/Tensorflow/bottleneck/" + image_dir + \
+          " --summaries_dir /tmp/retrain_logs/" #\
+          #" --tfhub_module 'https://tfhub.dev/google/imagenet/pnasnet_large/classification/1'"
+        # " --flip_left_right" + \
+    # " --output_graph " + tensorFolder + "/scannet_inception.db" + \
+    # " --output_labels " + tensorFolder + "/scannet_labels.txt"
     print(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     out, err = p.communicate()
     print(out.decode('utf-8'))
-    with open(tensorFolder + "/retrain_cmd.txt", 'a') as f:
-        f.write(str(exportNumber) + " : " + str(cmd))
     with open(exportPath + "/cmd.txt", 'w') as f:
-        f.write(cmd)
+        f.write(cmd+"\n")
     return 0
 
 
 def runTensorboard():
-    cmd = "tensorboard --logdir /tmp/retrain_logs"
+    time.sleep(2)
+    cmd = "tensorboard --logdir /tmp/retrain_logs/"
     p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     out, err = p1.communicate()
     print(out.decode('utf-8'))
@@ -85,10 +86,9 @@ def main():
         threadT = threading.Thread(target=runTensorboard)
         # threadT.daemon = True
         threadT.start()
-        # Wait for user to Make the programm stop
+        # Wait for user to Make the program stop
         input("Press a key to stop the program and stop tensorboard")
 
-        print(echo)
         return 0
 
 

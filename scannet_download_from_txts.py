@@ -1,7 +1,7 @@
 # Script created by Paul Asquin for Awabot Intelligence, May 2018
 # Automating scene downloading of scene id files
 
-import os
+from tools import *
 
 labelFolder = "labels/"
 plyFolder = "PLY/"
@@ -27,14 +27,6 @@ def getFiles(extension=".txt"):
     return ret
 
 
-def createFolder(folderName):
-    """" Create a folder if it not already exists"""
-    # If folder doesn't exist, we create it
-    if not os.path.isdir(folderName):
-        print("Creating " + str(folderName))
-        os.mkdir(folderName)
-
-
 def downloadScene(sceneId, folder):
     os.system("python download-scannet.py -o " + folder + "/ --id " + sceneId + " --type _vh_clean_2.ply")
 
@@ -50,9 +42,7 @@ def getTxtFilePath(file):
 
 def main():
     global plyFolder
-    if os.path.isdir(plyFolder) == False:
-        createFolder(plyFolder)
-
+    createFolder(plyFolder)
     files = getFiles()
     folders = []
     for file in files:
