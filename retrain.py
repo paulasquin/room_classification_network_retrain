@@ -158,7 +158,7 @@ def create_image_lists(image_dir, testing_percentage, validation_percentage, suf
       image_dir: String path to a folder containing subfolders of images.
       testing_percentage: Integer percentage of the images to reserve for tests.
       validation_percentage: Integer percentage of images reserved for validation.
-      suffix: Optional ;Personal argument by Paul Asquin : Considering only particular suffix in file names
+      suffix: Optional ; Personal argument by Paul Asquin : Considering only particular suffix in file names
 
     Returns:
       An OrderedDict containing an entry for each label subfolder, with images
@@ -849,11 +849,11 @@ def run_final_eval(train_session, module_spec, class_count, image_lists,
 
     (eval_session, _, bottleneck_input, ground_truth_input, evaluation_step,
      prediction) = build_eval_session(module_spec, class_count)
-    test_accuracy, predictions = eval_session.run([evaluation_step, prediction],
-                                                  feed_dict={bottleneck_input: test_bottlenecks,
-                                                             ground_truth_input: test_ground_truth})
-    tf.logging.info('Final test accuracy = %.1f%% (N=%d)' %
-                    (test_accuracy * 100, len(test_bottlenecks)))
+    test_accuracy, predictions = eval_session.run(
+        [evaluation_step, prediction],
+        feed_dict={bottleneck_input: test_bottlenecks, ground_truth_input: test_ground_truth}
+    )
+    tf.logging.info('Final test accuracy = %.1f%% (N=%d)' % (test_accuracy * 100, len(test_bottlenecks)))
 
     if FLAGS.print_misclassified_test_images:
         tf.logging.info('=== MISCLASSIFIED TEST IMAGES ===')
@@ -861,7 +861,7 @@ def run_final_eval(train_session, module_spec, class_count, image_lists,
             f.write("=== " + FLAGS.saved_model_dir + " ===\n")
         for i, test_filename in enumerate(test_filenames):
             if predictions[i] != test_ground_truth[i]:
-                with open("misclasified.txt", 'a') as f:
+                with open(FLAGS.saved_model_dir + "/misclasified.txt", 'a') as f:
                     txt = test_filename + " : " + str(list(image_lists.keys())[predictions[i]]) + "\n"
                     print("misclasified : " + txt)
                     f.write(txt)
