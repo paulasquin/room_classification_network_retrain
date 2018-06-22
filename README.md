@@ -35,8 +35,9 @@ sudo python3 scannet_slicer.py
 #### Download the dataset  
 
 ```
-python3 ...
+python download_mp.py -o HOUSE_SEGMENTATION --type house_segmentations
 ```
+https://github.com/niessner/Matterport
 
 #### Process Matterport to slices  
 
