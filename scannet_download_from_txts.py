@@ -28,7 +28,7 @@ def getFiles(extension=".txt"):
 
 
 def downloadScene(sceneId, folder):
-    os.system("python download-scannet.py -o " + folder + "/ --id " + sceneId + " --type _vh_clean_2.ply")
+    os.system("python scannet_download.py -o " + folder + "/ --id " + sceneId + " --type _vh_clean_2.ply")
 
 
 def getTxtFilePath(file):
