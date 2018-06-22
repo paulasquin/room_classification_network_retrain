@@ -68,7 +68,7 @@ def augmentImage(lesImgPath):
 
 
 def main():
-    while (True):
+    while True:
         command = input("Enter \n"
                         "\t- 'rm' to del blank-like images from the dataset " + datasetFolder + "\n" + \
                         "\t- 'aug' to augment the dataset with " + ', '.join(lesAugmentation) + "\n" + \
