@@ -1,5 +1,5 @@
-# Script created by Paul Asquin for Awabot Intelligence, May 2018
 # Automating scene downloading of scene id files
+# Written by Paul Asquin paul.asquin@gmail.com for Awabot Intelligence, 2018
 
 from tools import *
 

@@ -1,4 +1,6 @@
-import threading
+# Call the model create by dataset_inception_retrain.py for later use
+# Written by Paul Asquin paul.asquin@gmail.com for Awabot Intelligence, 2018
+
 import subprocess
 import argparse
 import os

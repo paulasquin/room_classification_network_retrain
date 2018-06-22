@@ -1,3 +1,5 @@
+# Tensorflow Inception retrain script modified by Paul Asquin paul.asquin@gmail.com for Awabot Intelligence in 2018
+
 # Copyright 2015 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

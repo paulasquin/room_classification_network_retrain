@@ -1,5 +1,5 @@
-# Script to detect, open and convert .ply files to image files, slices at regular altitude from the ply mesh.
-# Written by Paul Asquin for Awabot Intelligence, May 2018
+# Script to detect, open and convert .ply files to image files with slices at given altitude from the ply mesh.
+# Written by Paul Asquin paul.asquin@gmail.com for Awabot Intelligence, 2018
 
 from plyfile import PlyData
 import sys

@@ -1,3 +1,6 @@
+# General toolbox for Room Classification Project
+# Written by Paul Asquin paul.asquin@gmail.com for Awabot Intelligence, 2018
+
 import os
 import subprocess
 from PIL import Image

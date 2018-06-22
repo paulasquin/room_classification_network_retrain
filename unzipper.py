@@ -1,3 +1,7 @@
+# Unzip elements froms Matterport dataset
+# Written by Paul Asquin paul.asquin@gmail.com for Awabot Intelligence, 2018
+
+
 from __future__ import print_function
 import sys
 import zipfile
