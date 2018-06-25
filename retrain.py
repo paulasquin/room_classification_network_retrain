@@ -147,7 +147,7 @@ FAKE_QUANT_OPS = ('FakeQuantWithMinMaxVars',
                   'FakeQuantWithMinMaxVarsPerChannel')
 
 
-def create_image_lists(image_dir, testing_percentage, validation_percentage, suffix=''):
+def create_image_lists(image_dir, testing_percentage, validation_percentage, suffix='', in_name=''):
     """Builds a list of training images from the file system.
 
     Analyzes the sub folders in the image directory, splits them into stable
@@ -159,6 +159,7 @@ def create_image_lists(image_dir, testing_percentage, validation_percentage, suf
       testing_percentage: Integer percentage of the images to reserve for tests.
       validation_percentage: Integer percentage of images reserved for validation.
       suffix: Optional ; Personal argument by Paul Asquin : Considering only particular suffix in file names
+      in_name: Optional ; Personal argument by Paul Asquin : Considering only particular file names containing the str in_name in their name
 
     Returns:
       An OrderedDict containing an entry for each label subfolder, with images
@@ -183,7 +184,7 @@ def create_image_lists(image_dir, testing_percentage, validation_percentage, suf
             continue
         tf.logging.info("Looking for images in '" + dir_name + "'")
         for extension in extensions:
-            file_glob = os.path.join(image_dir, dir_name, '*' + suffix + '.' + extension)
+            file_glob = os.path.join(image_dir, dir_name, '*' + in_name + '*' + suffix + '.' + extension)
             file_list.extend(tf.gfile.Glob(file_glob))
         if not file_list:
             tf.logging.warning('No files found')
@@ -861,7 +862,7 @@ def run_final_eval(train_session, module_spec, class_count, image_lists,
             f.write("=== " + FLAGS.saved_model_dir + " ===\n")
         for i, test_filename in enumerate(test_filenames):
             if predictions[i] != test_ground_truth[i]:
-                with open(FLAGS.saved_model_dir + "/misclasified.txt", 'a') as f:
+                with open(FLAGS.saved_model_dir + "misclasified.txt", 'a') as f:
                     txt = test_filename + " : " + str(list(image_lists.keys())[predictions[i]]) + "\n"
                     print("misclasified : " + txt)
                     f.write(txt)
@@ -1003,7 +1004,7 @@ def main(_):
 
     # Look at the folder structure, and create lists of all the images.
     image_lists = create_image_lists(FLAGS.image_dir, FLAGS.testing_percentage,
-                                     FLAGS.validation_percentage, FLAGS.suffix)
+                                     FLAGS.validation_percentage, FLAGS.suffix, FLAGS.in_name)
 
     class_count = len(image_lists.keys())
     if class_count == 0:
@@ -1343,6 +1344,12 @@ if __name__ == '__main__':
         type=str,
         default='',
         help='Suffix of image files to consider.')
+
+    parser.add_argument(
+        '--in_name',
+        type=str,
+        default='',
+        help='Str contained in the image name to consider.')
 
     parser.add_argument(
         '--path_mislabeled_names',
