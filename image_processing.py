@@ -1,8 +1,9 @@
-# Process images to augment the dataset or clean it of blank like image
+#  Process images to augment the dataset or clean it of blank like image
 # Written by Paul Asquin paul.asquin@gmail.com for Awabot Intelligence, 2018
 
 from tools import *
 import PIL
+import sys
 
 lesAugmentation = ['width-flip', 'height-flip', 'cwRotate', 'ccwRotate', 'inverse']
 datasetFolder = "JPG_Scannet_Matterport"
@@ -13,10 +14,11 @@ def delBlankImage(lesImgPath):
     print("Deleting empty-like image (<6ko)")
     for path in lesImgPath:
         if os.path.getsize(path) < 6000 or "-1.jpg" in path or "-0.2.jpg" in path:
-            print("\tDel " + path.split("/")[-1], end="\r")
+            print("\tDel " + path.split("/")[-1] + " "*30, end="\r")
             os.remove(path)
             with open("empty_image.txt", "a") as f:
                 f.write(path + "\n")
+    print("Ended")
     return 0
 
 
@@ -25,7 +27,13 @@ def getAugmentationPath(imgPath, augmentation):
 
 
 def notAlreadyAugmented(imgPath, augmentation):
-    return not os.path.isfile(getAugmentationPath(imgPath=imgPath, augmentation=augmentation))
+    """ Return False if asked augmentation already exists or if the file is already an augmentation"""
+    augPath = getAugmentationPath(imgPath=imgPath, augmentation=augmentation)
+    augmented = False
+    for aug in lesAugmentation:
+        if "-" + aug in imgPath:
+            augmented = True
+    return not (os.path.isfile(augPath) or augmented)
 
 
 def augmentImage(lesImgPath):
@@ -33,33 +41,38 @@ def augmentImage(lesImgPath):
     print(', '.join(lesAugmentation))
     for imgPath in lesImgPath:
         with PIL.Image.open(imgPath) as img:
-            print("Augmenting " + imgPath, end="\r")
+            print(imgPath)
             for augmentation in lesAugmentation:
                 if augmentation == 'width-flip' and notAlreadyAugmented(imgPath=imgPath, augmentation=augmentation):
+                    print("\t" + augmentation + " Augmenting")
                     img.transpose(PIL.Image.FLIP_LEFT_RIGHT).save(
                         getAugmentationPath(
                             imgPath=imgPath,
                             augmentation=augmentation)
                     )
                 elif augmentation == 'height-flip' and notAlreadyAugmented(imgPath=imgPath, augmentation=augmentation):
+                    print("\t" + augmentation + " Augmenting")
                     img.transpose(PIL.Image.FLIP_TOP_BOTTOM).save(
                         getAugmentationPath(
                             imgPath=imgPath,
                             augmentation=augmentation)
                     )
                 elif augmentation == 'cwRotate' and notAlreadyAugmented(imgPath=imgPath, augmentation=augmentation):
+                    print("\t" + augmentation + " Augmenting")
                     img.transpose(PIL.Image.ROTATE_270).save(
                         getAugmentationPath(
                             imgPath=imgPath,
                             augmentation=augmentation)
                     )
                 elif augmentation == 'ccwRotate' and notAlreadyAugmented(imgPath=imgPath, augmentation=augmentation):
+                    print("\t" + augmentation + " Augmenting")
                     img.transpose(PIL.Image.ROTATE_90).save(
                         getAugmentationPath(
                             imgPath=imgPath,
                             augmentation=augmentation)
                     )
-                elif augmentation == 'reverse' and notAlreadyAugmented(imgPath=imgPath, augmentation=augmentation):
+                elif augmentation == 'inverse' and notAlreadyAugmented(imgPath=imgPath, augmentation=augmentation):
+                    print("\t" + augmentation + " Augmenting")
                     img.transpose(PIL.Image.ROTATE_180).save(
                         getAugmentationPath(
                             imgPath=imgPath,
