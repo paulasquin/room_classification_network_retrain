@@ -133,6 +133,7 @@ import sys
 import numpy as np
 import tensorflow as tf
 import tensorflow_hub as hub
+import random
 
 FLAGS = None
 
@@ -147,7 +148,8 @@ FAKE_QUANT_OPS = ('FakeQuantWithMinMaxVars',
                   'FakeQuantWithMinMaxVarsPerChannel')
 
 
-def create_image_lists(image_dir, testing_percentage, validation_percentage, suffix='', in_name=''):
+def create_image_lists(image_dir, testing_percentage, validation_percentage, suffix='', in_name='',
+                       augmentation='False'):
     """Builds a list of training images from the file system.
 
     Analyzes the sub folders in the image directory, splits them into stable
@@ -160,6 +162,7 @@ def create_image_lists(image_dir, testing_percentage, validation_percentage, suf
       validation_percentage: Integer percentage of images reserved for validation.
       suffix: Optional ; Personal argument by Paul Asquin : Considering only particular suffix in file names
       in_name: Optional ; Personal argument by Paul Asquin : Considering only particular file names containing the str in_name in their name
+      augmentation: Optional ; Personal argument by Paul Asquin : Bool, augment the dataset, if False choose a random given transformation
 
     Returns:
       An OrderedDict containing an entry for each label subfolder, with images
@@ -1004,7 +1007,7 @@ def main(_):
 
     # Look at the folder structure, and create lists of all the images.
     image_lists = create_image_lists(FLAGS.image_dir, FLAGS.testing_percentage,
-                                     FLAGS.validation_percentage, FLAGS.suffix, FLAGS.in_name)
+                                     FLAGS.validation_percentage, FLAGS.suffix, FLAGS.in_name, FLAGS.augmentation)
 
     class_count = len(image_lists.keys())
     if class_count == 0:
@@ -1267,8 +1270,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--print_misclassified_test_images',
-        # default=False,
-        default=True,
+        default=False,
         help="""\
       Whether to print out a list of all misclassified test images.\
       """,
@@ -1350,6 +1352,12 @@ if __name__ == '__main__':
         type=str,
         default='',
         help='Str contained in the image name to consider.')
+
+    parser.add_argument(
+        '--augmentation',
+        default='False',
+        help='If True, we are using each rooms multiple times with their given augmentations (flips, rotations...)'
+             'If False, we chose randomly only one given transformation per slice')
 
     parser.add_argument(
         '--path_mislabeled_names',
