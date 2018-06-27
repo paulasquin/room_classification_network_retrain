@@ -1,7 +1,14 @@
+# use modified version of retrain.py to retrain Inception for Room Classification application using 2D slices generated
+# from datasets like Scannet and Matterport
+# Written by Paul Asquin paul.asquin@gmail.com for Awabot Intelligence, 2018
+
+from tools import *
 import os
-import threading
 import subprocess
-import time
+
+TENSOR_FOLDER = "tensorflow"
+IMAGE_DIR = "JPG_Scannet_Matterport"
+TENSORBOARD_PATH = "~/.local/lib/python3.5/site-packages/tensorboard/main.py"
 
 def getExportNumber(tensorFolder):
     """ Get the number of the export folder looking at already existing folders
@@ -30,73 +37,54 @@ def getExportNumber(tensorFolder):
 
 
 def runRetrain():
-    tensorFolder = "tensorflow"
-    image_dir = "JPG_Scannet_Matterport"
-    exportNumber = getExportNumber(tensorFolder)
-    exportPath = str(tensorFolder) + "/export_" + str(exportNumber)
+    exportNumber = getExportNumber(TENSOR_FOLDER)
+    exportPath = str(TENSOR_FOLDER) + "/export_" + str(exportNumber)
     os.mkdir(exportPath)
 
     print("exportPath : " + exportPath)
-    if not os.path.isdir(tensorFolder):
-        os.mkdir(tensorFolder)
-
+    createFolder(TENSOR_FOLDER)
 
     cmd = "python3 retrain.py" \
-          " --image_dir " + image_dir + \
+          " --image_dir " + IMAGE_DIR + \
           " --saved_model_dir " + exportPath + "/model/" + \
           " --validation_batch_size -1" + \
-          " --how_many_training_steps 4000" + \
-          " --suffix -0.5" \
-          " --learning_rate 0.01" + \
-          " --validation_percentage 15" + \
-          " --testing_percentage 0" + \
+          " --print_misclassified_test_images True" + \
+          " --how_many_training_steps 20000" + \
           " --path_mislabeled_names " + exportPath + \
-          " --bottleneck_dir /media/nas/Tensorflow/bottleneck/" + image_dir + \
-          " --summaries_dir /tmp/retrain_logs/" #\
-          #" --tfhub_module 'https://tfhub.dev/google/imagenet/pnasnet_large/classification/1'"
-        # " --flip_left_right" + \
+          " --bottleneck_dir /media/nas/Tensorflow/bottleneck/" + IMAGE_DIR + \
+          " --summaries_dir /tmp/retrain_logs/" +\
+          " --train_maximum True"  # + \
+    # " --validation_percentage 5" + \
+    # " --testing_percentage 0" + \
+    # " --learning_rate 0.05" #+ \
+    # " --tfhub_module 'https://tfhub.dev/google/imagenet/pnasnet_large/classification/1'"
+    # " --flip_left_right" + \
     # " --output_graph " + tensorFolder + "/scannet_inception.db" + \
     # " --output_labels " + tensorFolder + "/scannet_labels.txt"
     print(cmd)
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    p = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True)
     out, err = p.communicate()
     print(out.decode('utf-8'))
     with open(exportPath + "/cmd.txt", 'w') as f:
-        f.write(cmd+"\n")
+        f.write(cmd + "\n")
     return 0
 
 
 def runTensorboard():
-    time.sleep(2)
-    cmd = "tensorboard --logdir /tmp/retrain_logs/"
-    p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-    out, err = p1.communicate()
-    print(out.decode('utf-8'))
-
+    subprocess.call(["killall tensorboard"], shell=True)
+    subprocess.call(["sudo tensorboard --logdir /tmp/retrain_logs/"], shell=True)
+    return 0
 
 def main():
     try:
-        # Kill precedent residual tensorboard server
-        os.system("killall tensorboard")
-        # Launch retrain thread
-        threadR = threading.Thread(target=runRetrain)
-        # threadR.daemon = True
-        threadR.start()
-        # Launch tensorboard thread
-        threadT = threading.Thread(target=runTensorboard)
-        # threadT.daemon = True
-        threadT.start()
-        # Wait for user to Make the program stop
-        input("Press a key to stop the program and stop tensorboard")
-
-        return 0
-
-
+        runTensorboard()
+        runRetrain()
     except KeyboardInterrupt:
-        threadR._stop()
-        threadT._stop()
-        return 0
-
+        print("Wait for clean exit of the retrain script")
+        pass
+    # Wait for user to make the program stop
+    input("Press a key to stop the program and stop tensorboard")
+    return 0
 
 if __name__ == "__main__":
     main()
