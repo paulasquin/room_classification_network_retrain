@@ -3,19 +3,18 @@
 from __future__ import print_function
 from plyfile import PlyData  # , PlyElement
 import numpy as np
-from PIL import Image
 import io
 import sys
 from tools import *
 
-lesAltitudes = [0.2, 0.4, 0.5, 0.7, 1]  # Altitudes around which the section will be taken
-sectionWidth = 0.04  # A section is 4 cm high
-imageFolder = "JPG"
-plyFolder = "HOUSE_SEGMENTATION"
-imageSize = 500
-if imageSize != 500:
-    imageFolder += "_" + str(imageSize)
-lesLabel = [
+LES_ALTITUDES = [0.2, 0.4, 0.5, 0.7, 1]  # Altitudes around which the section will be taken
+SECTION_HEIGHT = 0.04  # A section is 4 cm high
+IMAGE_FOLDER = "JPG"
+PLY_FOLDER = "HOUSE_SEGMENTATION"
+IMAGE_SIZE = 500
+if IMAGE_SIZE != 500:
+    IMAGE_FOLDER += "_" + str(IMAGE_SIZE)
+LES_LABELS = [
     ["a", "bathroom"],
     ["b", "bedroom"],
     ["k", "kitchen"],
@@ -61,7 +60,6 @@ def getSlicesLoop(lesPoints, sectionsDownUp):
 
 
 def getMetas(pathToHouse):
-    global lesLabel
     print("Opening " + pathToHouse.split("/")[-1])
     lesMeta = []
     lesCorrespLabel = []
@@ -69,7 +67,7 @@ def getMetas(pathToHouse):
         for line in f:
             ligneProcess = line.replace(" \n", "").split("  ")
 
-            for label in lesLabel:
+            for label in LES_LABELS:
                 if ligneProcess[0] == 'R' and ligneProcess[3] == label[0]:
                     print("\tFound a " + label[1] + " !")
                     lesMeta.append(ligneProcess)
@@ -164,11 +162,10 @@ def extractRoom(lesMeta, pathToPly):
     return lesRoomPly
 
 
-def generateImage(pathToPly, pathToHouse, lesAltitudes, sectionWidth):
+def generateImage(pathToPly, pathToHouse):
     """ Treat information to use of given .ply file to generate images at given altitudes with given sectionWidth """
-    global imageFolder
     try:
-        with open(imageFolder + "/house_out.log", 'r') as f:
+        with open(IMAGE_FOLDER + "/house_out.log", 'r') as f:
             if pathToHouse in f.read():
                 print(" - already treated")
                 return 0
@@ -205,12 +202,12 @@ def generateImage(pathToPly, pathToHouse, lesAltitudes, sectionWidth):
                         prefix=str(k) + "-" + lesCorrespLabel[k],
                         suffix=str(lesAltitudes[i]),
                         extension="jpg",
-                        imgFolder=imageFolder),
-                    width=imageSize,
-                    height=imageSize) != 0:
+                        imgFolder=IMAGE_FOLDER),
+                    width=IMAGE_SIZE,
+                    height=IMAGE_SIZE) != 0:
                 print("Error with export of " + str(lesCorrespLabel[k]) + " altitude " + str(lesAltitudes[i]))
                 # log error
-                with open(imageFolder + "/house_error.log", 'a') as f:
+                with open(IMAGE_FOLDER + "/house_error.log", 'a') as f:
                     try:
                         if pathToHouse not in f.read():
                             f.write(pathToHouse + "\n")
@@ -218,27 +215,24 @@ def generateImage(pathToPly, pathToHouse, lesAltitudes, sectionWidth):
                         f.write(pathToHouse + "\n")
                 return -1  # Send back we have an error
     # Write to out.log
-    with open(imageFolder + "/house_out.log", 'a') as f:
+    with open(IMAGE_FOLDER + "/house_out.log", 'a') as f:
         f.write(pathToHouse + "\n")
 
 
 def main():
-    global lesAltitudes
-    global sectionWidth
-
     # Create image directory if it doesn't exist yet
-    createFolder(imageFolder)
+    createFolder(IMAGE_FOLDER)
 
     # Load files and sort the names
     lesPlyPath = locate_files(
         extension=".ply",
         dbName="plyfiles",
-        path=relative_to_absolute_path(plyFolder))
+        path=relative_to_absolute_path(PLY_FOLDER))
     lesPlyPath.sort()
     lesHousePath = locate_files(
         extension=".house",
         dbName="housefiles",
-        path=relative_to_absolute_path(plyFolder))
+        path=relative_to_absolute_path(PLY_FOLDER))
     lesHousePath.sort()
 
     for i in range(len(lesPlyPath)):
@@ -246,9 +240,7 @@ def main():
         sys.stdout.flush()
         generateImage(
             pathToPly=lesPlyPath[i],
-            pathToHouse=lesHousePath[i],
-            lesAltitudes=lesAltitudes,
-            sectionWidth=sectionWidth)
+            pathToHouse=lesHousePath[i])
     return 0
 
 

@@ -7,9 +7,9 @@ import numpy as np
 import io
 from tools import *
 
-lesAltitudes = [0.4, 0.5, 0.7]  # Altitudes around which the section will be taken
-sectionWidth = 0.04  # A section is 4 cm high
-imageFolder = "JPG"
+LES_ALTITUDES = [0.4, 0.5, 0.7]  # Altitudes around which the section will be taken
+SECTION_HEIGHT = 0.04  # A section is 4 cm high
+IMAGE_FOLDER = "JPG"
 plyFolder = "Scannet_PLY"
 
 
@@ -82,7 +82,7 @@ def getLabels():
 def filepathImage(filepath, label, suffix="", folderName="", extension="png"):
     """ Generate the path name for the image, default folder name is label.title()
     A suffix can be indicated to indicate, for example, the altitude level """
-    global imageFolder
+    global IMAGE_FOLDER
     if folderName == "":
         folderName = label.title()
     if suffix != "":
@@ -102,7 +102,7 @@ def extractPoints(pathToPly):
 def generateImage(filepath, lesAltitudes, sectionWidth, label):
     """ Treat information to use of given .ply file to generate image at given altitudes with given sectionWidth
     A label have to be indicated to precise if the file is a Kitchen, a bathroom, etc """
-    global imageFolder
+    global IMAGE_FOLDER
 
     try:
         with open(imageFolder + "/out.log", 'r') as f:
@@ -138,14 +138,14 @@ def generateImage(filepath, lesAltitudes, sectionWidth, label):
 
 def main():
     # Create image directory if it doesn't exist yet
-    createFolder(imageFolder)
+    createFolder(IMAGE_FOLDER)
     for label in getLabels():
         paths = locate_files(extension="_vh_clean_2.ply", dbName=label + "_plyfiles",
                              path=relative_to_absolute_path(plyFolder + "/" + label.title()))
         print("\n--- " + label + " : " + str(len(paths)) + " ---")
         for i in range(len(paths)):
             print("\n" + str(i + 1) + "/" + str(len(paths)) + " " + str(label))
-            generateImage(filepath=paths[i], lesAltitudes=lesAltitudes, sectionWidth=sectionWidth, label=label)
+            generateImage(filepath=paths[i], lesAltitudes=LES_ALTITUDES, sectionWidth=SECTION_HEIGHT, label=label)
     return 0
 
 
