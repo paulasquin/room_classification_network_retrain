@@ -68,10 +68,12 @@ def locate_files(extension, path=os.getcwd(), dbName="locate"):
         cmd = "updatedb -l 0 -o " + dbName + ".db -U " + path + "/"
         print(cmd)
         subprocess.call(["echo 'You may need sudo access' &" + cmd], shell=True)
+    except (KeyboardInterrupt, SystemExit):
+        raise
     except:
         print("Might be an error in permission to write the locate database."
               " Try to launch the script with \"sudo python\"")
-    cmd = "locate -d " + dbName + ".db " + relative_to_absolute_path(path) + "/*" + extension
+    cmd = "locate -d " + dbName + ".db " + relative_to_absolute_path(path) + "*" + extension
     print(cmd)
     p = subprocess.Popen([cmd],
                          stdout=subprocess.PIPE, shell=True)
@@ -141,6 +143,8 @@ def exportSlice(slice, extrema, path, label, width=500, height=500):
             img.save(path, "JPEG", quality=80, optimize=True, progressive=True)
         else:
             img.save(path)
+    except KeyboardInterrupt:
+        raise
     except:
         print("Problem exporting " + path)
         return -1
