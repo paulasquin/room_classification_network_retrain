@@ -2,62 +2,41 @@
 # Written by Paul Asquin paul.asquin@gmail.com for Awabot Intelligence, 2018
 
 from tools import *
+import subprocess
 
-labelFolder = "labels/"
-plyFolder = "PLY/"
-
-
-def getFiles(extension=".txt"):
-    """ Get files name with a given extension (default : .txt)
-    in this directory """
-    global labelFolder
-    parentPath = os.getcwd()
-
-    # Go to labels subfolder
-    os.chdir(labelFolder)
-
-    # Get file names
-    brut = os.listdir()
-    os.chdir(parentPath)
-
-    ret = []
-    for b in brut:
-        if '.txt' in b:
-            ret.append(b)
-    return ret
+labelFolder = "Scannet_IDs/"
+plyFolder = "Scannet_PLY/"
 
 
 def downloadScene(sceneId, folder):
-    os.system("python scannet_download.py -o " + folder + "/ --id " + sceneId + " --type _vh_clean_2.ply")
+    # scannet_download.py manage itself already downloaded files
+    cmd = "python scannet_download.py -o " + folder + "/ --id " + sceneId + " --type _vh_clean_2.ply"
 
-
-def getTxtFilePath(file):
-    """ Return txt file path considering labelFolder """
-    global labelFolder
-    path = file
-    if labelFolder != "":
-        path = labelFolder + "/" + path
-    return path
+    p = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True)
+    out, err = p.communicate()
+    print(out.decode('utf-8'))
+    return 0
 
 
 def main():
     global plyFolder
     createFolder(plyFolder)
-    files = getFiles()
-    folders = []
-    for file in files:
-        print("--- " + str(file) + " ---")
-        folders.append(file.replace(".txt", "").title())
-        createFolder(folders[-1])
-        with open(getTxtFilePath(file), 'r') as f:
+    lesFile = locate_files('.txt', path=os.getcwd() + "/" + labelFolder, dbName="scannet_txt_id")
+    lesFolder = []
+    for file in lesFile:
+        fileName = file.split("/")[-1]
+        print("--- " + str(fileName) + " ---")
+        lesFolder.append(fileName.replace(".txt", "").title())
+        createFolder(lesFolder[-1])
+        with open(file, 'r') as f:
             for line in f:
                 line = line.replace("\n", "")
-                if "id" not in line:
+                if "scene" in line:
                     print("Downloading " + str(line))
                     try:
-                        downloadScene(sceneId=line, folder=plyFolder + folders[-1])
+                        downloadScene(sceneId=line, folder=plyFolder + lesFolder[-1])
                     except KeyboardInterrupt:
-                        return 1
+                        return 0
 
 
 if __name__ == '__main__':
