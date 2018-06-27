@@ -20,8 +20,8 @@ def unzip(path):
         print(" - Done")
         with open("unzipDone.log", "a") as f:
             f.write(path + "\n")
-    except KeyboardInterrupt:
-        return 1
+    except (KeyboardInterrupt, SystemExit):
+        raise
     except:
         print(" - Error")
         with open("unzipError.log", "a") as f:
