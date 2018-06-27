@@ -64,7 +64,7 @@ def download_release(release_scans, out_dir, file_types):
 def download_file(url, out_file):
     out_dir = os.path.dirname(out_file)
     if not os.path.isfile(out_file):
-        print '\t' + url + ' > ' + out_file
+        print('\t' + url + ' > ' + out_file)
         fh, out_file_tmp = tempfile.mkstemp(dir=out_dir)
         f = os.fdopen(fh, 'w')
         f.close()
@@ -122,7 +122,7 @@ def main():
     print(TOS_URL)
     print('***')
     print('Press any key to continue, or CTRL-C to exit.')
-    key = raw_input('')
+    key = input('')
 
     release_file = BASE_URL + RELEASE + '.txt'
     release_scans = get_release_scans(release_file)
@@ -136,12 +136,12 @@ def main():
         else:
             print('ERROR: Unrecognized task data id: ' + args.task_data)
         print('Done downloading task_data for ' + str(args.task_data))
-        key = raw_input('Press any key to continue on to main dataset download, or CTRL-C to exit.')
+        key = input('Press any key to continue on to main dataset download, or CTRL-C to exit.')
 
     # download specific file types?
     if args.type:
         if not set(args.type) & set(FILETYPES):
-            print('ERROR: Invalid file type: ' + file_type)
+            print('ERROR: Invalid file type: ' + file_types)
             return
         file_types = args.type
 
@@ -160,7 +160,7 @@ def main():
         print('Note that existing scan directories will be skipped. Delete partially downloaded directories to re-download.')
         print('***')
         print('Press any key to continue, or CTRL-C to exit.')
-        key = raw_input('')
+        key = input('')
         out_dir = os.path.join(args.out_dir, RELEASE)
         download_release(release_scans, out_dir, file_types)
 
