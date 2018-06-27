@@ -3,7 +3,6 @@
 
 from tools import *
 import PIL
-import sys
 
 lesAugmentation = ['width-flip', 'height-flip', 'cwRotate', 'ccwRotate', 'inverse']
 datasetFolder = "JPG_Scannet_Matterport"
