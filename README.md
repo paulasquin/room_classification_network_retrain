@@ -2,23 +2,31 @@
 Project by Paul Asquin for Awabot - May-June 2018 paul.asquin@gmail.com  
 
 ## Introduction
-This project automates datasets downloading from ScanNet and Matterport, files treatement to produce slices from ply files with the different architectures 
+This project automates datasets downloading from ScanNet and Matterport, files treatement, to produce slices from ply files with the different architectures,
 and Inception retraining to implement a Room Classification application thanks to Machine Learning.  
 
-The script download_from_txts.py reads "any.txt" files in the same folder as itself and downloads given scene_ids in the folder "Any".
 
-## Datasets Management
+## Quickstart
+
+### Choose ScanNet dataset files with downloading new .txt files
+- Go to : https://dovahkiin.stanford.edu/scannet-browse/scans/scannet/querier  
+- Display wanted scenes with the search bar (for example : enter "Kitchen")  
+- Click on "Save Ids" (the drop-down menu should be on "original")  
+- A window opens. Make a Ctrl+S
+- Rename the file as "room.txt" (example : kitchen.txt, bedroom.txt)
+- Save the .txt file in a folder "Scannet_IDs", at the project root
+
+### Download, process and retrain
+execute : 
+```
+sudo python3 big_main.py
+```
+
+## Script explaination
 
 ### Scannet
 
-#### Download new .txt files
-- Go to : https://dovahkiin.stanford.edu/scannet-browse/scans/scannet/querier  
-- Display wanted scenes with the search bar  
-- Click on "Save Ids" (the drop-down menu should be on "original")  
-- A window opens. Make a Ctrl+S
-- Save the .txt file next to .py scripts
-
-#### Download the dataset  
+#### Download Scannet  
 
 ``` 
 python3 scannet_download_from_txts.py
@@ -32,7 +40,7 @@ sudo python3 scannet_slicer.py
 
 ### Matterport  
 
-#### Download the dataset  
+#### Download Matterport 
 
 ```
 python download_mp.py -o HOUSE_SEGMENTATION --type house_segmentations
@@ -45,7 +53,7 @@ https://github.com/niessner/Matterport
 sudo python3 matterport_slicer.py
 ```
 
-## Inception retraining  
+### Inception retraining  
 
 ```
 sudo python3 dataset_inception_retrain.py
