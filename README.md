@@ -10,8 +10,8 @@ and Inception retraining to implement a Room Classification application thanks t
 
 This section present a quick way to start the Map Room Classification project.  
 With those insutrctions, you will download and transform ScanNet and Matterport Dataset, and retrain Inception with those datas.
-
-    ### 1.Choose ScanNet dataset files with downloading new .txt files
+  
+> ### 1.Choose ScanNet dataset files with downloading new .txt files
 We present ScanNet in script explaination.  
 
 - Go to : https://dovahkiin.stanford.edu/scannet-browse/scans/scannet/querier  
@@ -21,7 +21,7 @@ We present ScanNet in script explaination.
 - Rename the file as "room.txt" (example : kitchen.txt, bedroom.txt, living.txt...)
 - Save the .txt file in a folder "Scannet_IDs", at the project root
 
-	### 2.Download, process and retrain
+> ### 2.Download, process and retrain
 In order to launch the quick "startover" script, open a shell terminal and execute : 
 ```
 sudo python3 big_main.py
@@ -32,13 +32,13 @@ sudo python3 big_main.py
 In this section, we will generally explain the functionnement of our scripts.  
 More precise informations are given in the script functions.  
 
-	### 1.Scannet
+> ### 1.Scannet
 
 [ScanNet](http://www.scan-net.org/) is a dataset developped by Stanford University, Princeton University and the Technical University of Munich.  
 It consits in the RGB-D scan of multiple rooms, reconstructed in [PLY files](https://en.wikipedia.org/wiki/PLY_(file_format)) (Polygon File Format).  
 We have, for each room of a unique type, a PLY file corresponding (a file for a Kitchen, a Bedroom, a Bathroom etc).  
 
-		#### a.Download ScanNet  
+>> #### a.Download ScanNet  
 
 In order to smart-download the ScanNet dataset, we have to get the room IDs we want to download. In order to do so, you can follow instructions given in II.1 Choose ScanNet dataset files with downloading new .txt files.  
 
@@ -51,7 +51,7 @@ The dataset is written into the "Scannet_PLY" folder and can use up to 220Go. Ea
 python3 scannet_download_from_txts.py
 ```
 
-		#### b.Process Scannet to slices  
+>> #### b.Process Scannet to slices  
 
 The script [scanner_slicer.py] will obtain the PLY files from the ScanNet dataset (written
 
@@ -59,22 +59,22 @@ The script [scanner_slicer.py] will obtain the PLY files from the ScanNet datase
 sudo python3 scannet_slicer.py
 ```
 
-	### 2.Matterport  
+> ### 2.Matterport  
 
-		#### a.Download Matterport 
+>> #### a.Download Matterport 
 
 ```
 python download_mp.py -o HOUSE_SEGMENTATION --type house_segmentations
 ```
 https://github.com/niessner/Matterport
 
-		#### b.Process Matterport to slices  
+>> #### b.Process Matterport to slices  
 
 ```
 sudo python3 matterport_slicer.py
 ```
 
-### 3.Inception retraining  
+> ### 3.Inception retraining  
 
 ```
 sudo python3 dataset_inception_retrain.py
