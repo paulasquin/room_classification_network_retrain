@@ -4,8 +4,8 @@
 from tools import *
 import PIL
 
-lesAugmentation = ['width-flip', 'height-flip', 'cwRotate', 'ccwRotate', 'inverse']
-datasetFolder = "JPG_Scannet_Matterport"
+LES_AUGMENTATION = ['width-flip', 'height-flip', 'cwRotate', 'ccwRotate', 'inverse']
+DATASET_FOLDER = "JPG_Scannet_Matterport"
 
 
 def delBlankImage(lesImgPath):
@@ -22,6 +22,7 @@ def delBlankImage(lesImgPath):
 
 
 def getAugmentationPath(imgPath, augmentation):
+    """ Generate the augmented image path, with given original path and augmentation """
     return imgPath.replace(".jpg", "-" + augmentation + ".jpg")
 
 
@@ -29,19 +30,20 @@ def notAlreadyAugmented(imgPath, augmentation):
     """ Return False if asked augmentation already exists or if the file is already an augmentation"""
     augPath = getAugmentationPath(imgPath=imgPath, augmentation=augmentation)
     augmented = False
-    for aug in lesAugmentation:
+    for aug in LES_AUGMENTATION:
         if "-" + aug in imgPath:
             augmented = True
     return not (os.path.isfile(augPath) or augmented)
 
 
 def augmentImage(lesImgPath):
-    global lesAugmentation
-    print(', '.join(lesAugmentation))
+    """ Apply augmentation operations defined by LES_AUGMENTATION corresponding to PIL transformations"""
+    global LES_AUGMENTATION
+    print(', '.join(LES_AUGMENTATION))
     for imgPath in lesImgPath:
         with PIL.Image.open(imgPath) as img:
             print(imgPath)
-            for augmentation in lesAugmentation:
+            for augmentation in LES_AUGMENTATION:
                 if augmentation == 'width-flip' and notAlreadyAugmented(imgPath=imgPath, augmentation=augmentation):
                     print("\t" + augmentation + " Augmenting")
                     img.transpose(PIL.Image.FLIP_LEFT_RIGHT).save(
@@ -82,13 +84,13 @@ def augmentImage(lesImgPath):
 def main():
     while True:
         command = input("Enter \n"
-                        "\t- 'rm' to del blank-like images from the dataset " + datasetFolder + "\n" + \
-                        "\t- 'aug' to augment the dataset with " + ', '.join(lesAugmentation) + "\n" + \
+                        "\t- 'rm' to del blank-like images from the dataset " + DATASET_FOLDER + "\n" + \
+                        "\t- 'aug' to augment the dataset with " + ', '.join(LES_AUGMENTATION) + "\n" + \
                         "\t- 'e' to end the program\n>> ")
         if command == "rm":
-            delBlankImage(locate_files(extension=".jpg", dbName="image", path=datasetFolder))
+            delBlankImage(locate_files(extension=".jpg", dbName="image", path=DATASET_FOLDER))
         elif command == "aug":
-            augmentImage(locate_files(extension=".jpg", dbName="image", path=datasetFolder))
+            augmentImage(locate_files(extension=".jpg", dbName="image", path=DATASET_FOLDER))
         elif command == "e":
             print("Exiting the program")
             return 0

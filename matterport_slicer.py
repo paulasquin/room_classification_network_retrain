@@ -21,45 +21,8 @@ LES_LABELS = [
     ["l", "living"]]
 
 
-def getSlicesLoop(lesPoints, sectionsDownUp):
-    """ Open lesPoints, read the data and return slices points with extrema """
-    # Initialize min-max values
-    minX, minY, minZ, maxX, maxY, maxZ = 1, 1, 1, 0, 0, 0
-
-    # Initialisation of "sliced" section points
-    sliced = [np.array((0, 0, 0), dtype=[('x', 'f4'), ('y', 'f4'), ('z', 'f4')])] * len(sectionsDownUp)
-    # Initialisation first point write
-    init = [True] * len(sectionsDownUp)
-
-    for i in range(len(lesPoints)):
-        (x, y, z) = lesPoints[i]
-
-        # Searching for map extrema
-        if i == 0:
-            # Initialisation of first values
-            minX, maxX, minY, maxY, minZ, maxZ = x, x, y, y, z, z
-        else:
-            minX = min(minX, x)
-            minY = min(minY, y)
-            minZ = min(minZ, z)
-            maxX = max(maxX, x)
-            maxY = max(maxY, y)
-            maxZ = max(maxZ, z)
-
-        for j in range(len(sectionsDownUp)):
-            downLimit = sectionsDownUp[j][0]
-            upLimit = sectionsDownUp[j][1]
-            if downLimit <= z <= upLimit:
-                if init[j]:
-                    init[j] = False
-                    sliced[j] = np.array((x, y, z), dtype=[('x', 'f4'), ('y', 'f4'), ('z', 'f4')])
-                else:
-                    sliced[j] = np.append(sliced[j], np.array((x, y, z), dtype=[('x', 'f4'), ('y', 'f4'), ('z', 'f4')]))
-
-    return sliced, [minX, maxX, minY, maxY, minZ, maxZ]
-
-
 def getMetas(pathToHouse):
+    """ Read and return metadatas from given house files corresponding to a label in LES_LABELS """
     print("Opening " + pathToHouse.split("/")[-1])
     lesMeta = []
     lesCorrespLabel = []

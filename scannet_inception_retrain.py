@@ -37,6 +37,7 @@ def getExportNumber(tensorFolder):
 
 
 def runRetrain():
+    """ Call retrain.py script with a large panel of arguments """
     exportNumber = getExportNumber(TENSOR_FOLDER)
     exportPath = str(TENSOR_FOLDER) + "/export_" + str(exportNumber)
     os.mkdir(exportPath)
@@ -71,6 +72,7 @@ def runRetrain():
 
 
 def runTensorboard():
+    """ Run tensorboard for data monitoring """
     subprocess.call(["killall tensorboard"], shell=True)
     subprocess.call(["sudo tensorboard --logdir /tmp/retrain_logs/"], shell=True)
     return 0

@@ -9,6 +9,7 @@ from tools import *
 
 
 def unzip(path):
+    """ Unzip given files ; log success and error"""
     print("Unzipping " + path, end="")
     sys.stdout.flush()
     extractPath = '/'.join(path.split("/")[:-2])
