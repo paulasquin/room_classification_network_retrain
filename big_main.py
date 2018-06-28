@@ -13,7 +13,7 @@ class Script:
 LES_SCRIPTS = [
     Script(
         "python3 scannet_download_from_txts.py",
-        "Downloading the ScanNet dataset from IDs text files in the 'Scannet_ID' folder"
+        "Downloading the ScanNet dataset from IDs text files in the 'Scannet_IDs' folder"
     ),
     Script(
         "python3 scannet_slicer.py",
