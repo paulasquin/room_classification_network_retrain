@@ -11,8 +11,7 @@ and Inception retraining to implement a Room Classification application thanks t
 This section present a quick way to start the Map Room Classification project.  
 With those insutrctions, you will download and transform ScanNet and Matterport Dataset, and retrain Inception with those datas.
   
-> ### 1.Choose ScanNet dataset files with downloading new .txt files
-We present ScanNet in script explaination.  
+> ### 1.Choose ScanNet dataset files downloading IDs .txt files
 
 - Go to : https://dovahkiin.stanford.edu/scannet-browse/scans/scannet/querier  
 - Display wanted scenes with the search bar (for example : enter "Kitchen")  
@@ -22,6 +21,7 @@ We present ScanNet in script explaination.
 - Save the .txt file in a folder "Scannet_IDs", at the project root
 
 > ### 2.Download, process and retrain
+
 In order to launch the quick "startover" script, open a shell terminal and execute : 
 ```
 sudo python3 big_main.py
@@ -40,7 +40,7 @@ We have, for each room of a unique type, a PLY file corresponding (a file for a 
 
 >> #### a.Download ScanNet  
 
-In order to smart-download the ScanNet dataset, we have to get the room IDs we want to download. In order to do so, you can follow instructions given in II.1 Choose ScanNet dataset files with downloading new .txt files.  
+In order to smart-download the ScanNet dataset, we have to get the room IDs we want to download. In order to do so, you can follow instructions given in II.1 Choose ScanNet dataset files downloading IDs .txt files  
 
 The script [scannet_download_from_txts.py](scannet_download_from_txts.py) will read those txt files and use the script [scannet_donwload.py](scannet_donwload.py) to download only the PLY file of requested rooms. 
 We can notice that their is not only one ply file per room ID (also call scene ID). Here, we are using \_2.ply files, that are at lower resolutions that regulation .ply files.
