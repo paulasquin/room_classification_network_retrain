@@ -1,11 +1,13 @@
 import dataset
 import tensorflow as tf
-import time
-from datetime import timedelta
 import math
 import random
 import numpy as np
 import os
+import sys
+
+sys.path.append('../../')
+from tools import *
 
 # Adding Seed so that random initialization is consistent
 from numpy.random import seed
@@ -24,21 +26,29 @@ gc.collect()
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # === Model parameters ===
-BATCH_SIZE = 64
+NUM_ITERATION = 3000
+BATCH_SIZE = 32
 VALIDATION_PERCENTAGE = 0.2  # 20% of the data will automatically be used for validation
 LEARNING_RATE = 1e-4
-IMG_SIZE = 256
+SHORTER_DATASET_VALUE = 1900
+IMG_SIZE = 500
+DATASET_TYPE = np.float16
 NUM_CHANNELS = 1
-SHORTER_DATASET_VALUE = 1000
-DATASET_PATH = '../../JPG_Scannet_Matterport'
+# SHORTER_DATASET_VALUE = 2000
+DATASET_PATH = '../../JPG_Scannet_Aug'
+DATASET_SAVE_DIR_PATH = os.getcwd() + "/" + DATASET_PATH.split("/")[-1].lower()
 
 # Network graph params
-LES_CONV_FILTER_SIZE = [30, 7, 7]
-LES_NUM_FILTERS_CONV = [128, 64, 32]
+LES_NUM_FILTERS_CONV = [64, 64, 64, 128, 128, 128, 256, 256, 256, 512, 512, 512]
+LES_CONV_FILTER_SIZE = [3] * len(LES_NUM_FILTERS_CONV)
 FC_LAYER_SIZE = 64
-MODEL_DIR_PATH = '/media/nas/ScanNet/From_Scratch_CNN/cv-tricks/model'
-INFO_TXT_PATH = MODEL_DIR_PATH + "/info.txt"
-CSV_TRAIN = MODEL_DIR_PATH + "/train.csv"
+
+EXPORTS_DIR_PATH = '/media/nas/ScanNet/From_Scratch_CNN/cv-tricks/exports/'
+createFolder(EXPORTS_DIR_PATH)
+EXPORTNUM_DIR_PATH = EXPORTS_DIR_PATH + "export_" + str(getExportNumber(EXPORTS_DIR_PATH))
+createFolder(EXPORTNUM_DIR_PATH)
+INFO_TXT_PATH = EXPORTNUM_DIR_PATH + "/info.txt"
+CSV_TRAIN = EXPORTNUM_DIR_PATH + "/train.csv"
 
 if len(LES_CONV_FILTER_SIZE) != len(LES_NUM_FILTERS_CONV):
     print("Convolutional layers params aren't the same length")
@@ -46,16 +56,6 @@ if len(LES_CONV_FILTER_SIZE) != len(LES_NUM_FILTERS_CONV):
 
 # === Global variables ===
 g_total_iterations = 0
-
-with open(INFO_TXT_PATH, 'w') as f:
-    txt = "\nBATCH_SIZE :" + str(BATCH_SIZE) + \
-          "\nLEARNING_RATE : " + str(LEARNING_RATE) + \
-          "\nSHORTER_DATASET_VALUE : " + str(SHORTER_DATASET_VALUE) + \
-          "\nDATASET_PATH : " + str(DATASET_PATH) + \
-          "\nLES_CONV_FILTER_SIZE : " + str(LES_CONV_FILTER_SIZE) + \
-          "\nLES_NUM_FILTERS_CONV : " + str(LES_NUM_FILTERS_CONV) + \
-          "\nFC_LAYER_SIZE : " + str(FC_LAYER_SIZE)
-    f.write(txt)
 
 """ Default Model :
     filter_size_conv1 = 3
@@ -166,16 +166,14 @@ def show_progress(epoch, feed_dict_train, feed_dict_validate, val_loss, session,
         prefix = "\t"
 
     with open(CSV_TRAIN, 'a') as f:
-        f.write(str(i) + "," + str(epoch + 1) + "," + str(acc) + "," + str(val_acc) + "," + str(val_loss) + "\n")
+        txt = str(i) + "\t" + str(epoch + 1) + "\t" + str(acc) + "\t" + str(val_acc) + "\t" + str(val_loss) + "\n"
+        f.write(txt.replace('.', ','))
 
     print(prefix + msg.format(epoch + 1, acc, val_acc, val_loss))
 
 
 def train(num_iteration, session, data, cost, saver, accuracy, optimizer, x, y_true):
     global g_total_iterations
-
-    with open(CSV_TRAIN, 'w') as f:
-        f.write("Iteration,Epoch,Training Accuracy,Validation Accuracy,Validation Loss\n")
 
     for i in range(g_total_iterations,
                    g_total_iterations + num_iteration):
@@ -198,9 +196,9 @@ def train(num_iteration, session, data, cost, saver, accuracy, optimizer, x, y_t
             epoch = int(i / int(data.train.num_examples / BATCH_SIZE))
 
             show_progress(epoch, feed_dict_tr, feed_dict_val, val_loss, session=session, accuracy=accuracy, i=i)
-            saver.save(session, MODEL_DIR_PATH)
+            saver.save(session, EXPORTNUM_DIR_PATH + "/model")
 
-        elif i % 10 == 0:
+        elif i % 5 == 0:
             val_loss = session.run(cost, feed_dict=feed_dict_val)
             epoch = int(i / int(data.train.num_examples / BATCH_SIZE))
             show_progress(epoch, feed_dict_tr, feed_dict_val, val_loss, session=session, accuracy=accuracy, i=i,
@@ -209,7 +207,22 @@ def train(num_iteration, session, data, cost, saver, accuracy, optimizer, x, y_t
     g_total_iterations += num_iteration
 
 
+def init():
+    with open(INFO_TXT_PATH, 'w') as f:
+        txt = "\nBATCH_SIZE :" + str(BATCH_SIZE) + \
+              "\nLEARNING_RATE : " + str(LEARNING_RATE) + \
+              "\nSHORTER_DATASET_VALUE : " + str(SHORTER_DATASET_VALUE) + \
+              "\nDATASET_PATH : " + str(DATASET_PATH) + \
+              "\nLES_CONV_FILTER_SIZE : " + str(LES_CONV_FILTER_SIZE) + \
+              "\nLES_NUM_FILTERS_CONV : " + str(LES_NUM_FILTERS_CONV) + \
+              "\nFC_LAYER_SIZE : " + str(FC_LAYER_SIZE)
+        f.write(txt)
+    with open(CSV_TRAIN, 'w') as f:
+        f.write("Iteration\tEpoch\tTraining Accuracy\tValidation Accuracy\tValidation Loss\n")
+
+
 def main():
+    init()
     session = tf.Session()
     # Prepare input data
     classes = os.listdir(DATASET_PATH)
@@ -222,15 +235,17 @@ def main():
     print(classes)
     num_classes = len(classes)
 
-    # We load all the training and validation images into memory
     data = dataset.read_train_sets(
         DATASET_PATH,
         IMG_SIZE,
         classes,
         validation_size=VALIDATION_PERCENTAGE,
         shorter=SHORTER_DATASET_VALUE,
-        num_channels=NUM_CHANNELS
+        num_channels=NUM_CHANNELS,
+        dataset_save_dir_path=DATASET_SAVE_DIR_PATH,
+        dataset_type=DATASET_TYPE
     )
+
 
     print("Complete reading input data. Will Now print a snippet of it")
     print("Number of files in Training-set:\t\t{}".format(len(data.train.labels)))
@@ -291,7 +306,7 @@ def main():
     saver = tf.train.Saver()
 
     train(
-        num_iteration=10000,
+        num_iteration=NUM_ITERATION,
         session=session,
         data=data,
         cost=cost,
