@@ -5,7 +5,7 @@ from tools import *
 import PIL
 
 LES_AUGMENTATION = ['width-flip', 'height-flip', 'cwRotate', 'ccwRotate', 'inverse']
-DATASET_FOLDER = "JPG_Scannet_Matterport"
+DATASET_FOLDER = "JPG_Scannet_Matterport_Tri_Aug"
 
 
 def delBlankImage(lesImgPath):

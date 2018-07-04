@@ -10,30 +10,6 @@ TENSOR_FOLDER = "tensorflow"
 IMAGE_DIR = "JPG_Scannet_Matterport"
 TENSORBOARD_PATH = "~/.local/lib/python3.5/site-packages/tensorboard/main.py"
 
-def getExportNumber(tensorFolder):
-    """ Get the number of the export folder looking at already existing folders
-    Handle the presence of '_precisions' at the end of the folder name """
-
-    lesDir = os.listdir(tensorFolder)
-    lesExport = []
-    lesNum = []
-    num = 0
-    for dir in lesDir:
-        if "export_" in dir:
-            lesExport.append(dir)
-    for i in range(len(lesExport)):
-        # Get number of export and add 1 to it
-        # If we have an extension in the name
-        if lesExport[i][7:].find("_") != -1:
-            lesNum.append(int(lesExport[i][7:7 + lesExport[i][7:].find("_")]))
-        # If there is not extension
-        else:
-            lesNum.append(int(lesExport[i][7:]))
-
-    if len(lesNum) != 0:
-        num = max(lesNum) + 1
-
-    return num
 
 
 def runRetrain():
@@ -53,12 +29,14 @@ def runRetrain():
           " --how_many_training_steps 20000" + \
           " --path_mislabeled_names " + exportPath + \
           " --bottleneck_dir /media/nas/Tensorflow/bottleneck/" + IMAGE_DIR + \
-          " --summaries_dir /tmp/retrain_logs/" +\
-          " --train_maximum True"  # + \
-    # " --validation_percentage 5" + \
-    # " --testing_percentage 0" + \
+          " --summaries_dir /tmp/retrain_logs2/" + \
+          " --train_maximum True"  + \
+          " --validation_percentage 5" + \
+          " --testing_percentage 5" + \
+          " --tfhub_module 'https://tfhub.dev/google/imagenet/inception_resnet_v2/classification/1'" #https://tfhub.dev/google/imagenet/pnasnet_large/classification/2
     # " --learning_rate 0.05" #+ \
-    # " --tfhub_module 'https://tfhub.dev/google/imagenet/pnasnet_large/classification/1'"
+    # /tmp/retrain_logs/
+
     # " --flip_left_right" + \
     # " --output_graph " + tensorFolder + "/scannet_inception.db" + \
     # " --output_labels " + tensorFolder + "/scannet_labels.txt"
@@ -73,7 +51,7 @@ def runRetrain():
 
 def runTensorboard():
     """ Run tensorboard for data monitoring """
-    subprocess.call(["killall tensorboard"], shell=True)
+    #subprocess.call(["killall tensorboard"], shell=True)
     subprocess.call(["sudo tensorboard --logdir /tmp/retrain_logs/"], shell=True)
     return 0
 
