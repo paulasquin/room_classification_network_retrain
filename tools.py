@@ -166,3 +166,29 @@ def getSlices(lesPoints, sectionsDownUp):
         temp = lesPoints[np.where(downLimit <= lesPoints['z'])]
         sliced.append(temp[np.where(temp['z'] <= upLimit)])
     return sliced, [minX, maxX, minY, maxY, minZ, maxZ]
+
+
+def getExportNumber(modelFolder):
+    """ Get the number of the export folder looking at already existing folders
+    Handle the presence of '_precisions' at the end of the folder name """
+
+    lesDir = os.listdir(modelFolder)
+    lesExport = []
+    lesNum = []
+    num = 0
+    for dir in lesDir:
+        if "export_" in dir:
+            lesExport.append(dir)
+    for i in range(len(lesExport)):
+        # Get number of export and add 1 to it
+        # If we have an extension in the name
+        if lesExport[i][7:].find("_") != -1:
+            lesNum.append(int(lesExport[i][7:7 + lesExport[i][7:].find("_")]))
+        # If there is not extension
+        else:
+            lesNum.append(int(lesExport[i][7:]))
+
+    if len(lesNum) != 0:
+        num = max(lesNum) + 1
+
+    return num
