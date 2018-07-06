@@ -5,6 +5,7 @@ import random
 import numpy as np
 import os
 import sys
+import gc
 
 sys.path.append('../../')
 from tools import *
@@ -16,59 +17,71 @@ seed(1)
 from tensorflow import set_random_seed
 
 set_random_seed(2)
-
 # Free not allocated memory
-import gc
-
 gc.collect()
 
 # Hide useless tensorflow warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+HYPERPARAM_TXT_PATH = 'hyperparams.txt'
 
 # === Model parameters ===
-NUM_ITERATION = 3000
+# HYPERPARAM
+NUM_ITERATION = 4000
 BATCH_SIZE = 32
-VALIDATION_PERCENTAGE = 0.2  # 20% of the data will automatically be used for validation
 LEARNING_RATE = 1e-4
-SHORTER_DATASET_VALUE = 1900
+SHORTER_DATASET_VALUE = 0
 IMG_SIZE = 500
-DATASET_TYPE = np.float16
-NUM_CHANNELS = 1
-# SHORTER_DATASET_VALUE = 2000
-DATASET_PATH = '../../JPG_Scannet_Aug'
-DATASET_SAVE_DIR_PATH = os.getcwd() + "/" + DATASET_PATH.split("/")[-1].lower()
-
-# Network graph params
 LES_NUM_FILTERS_CONV = [64, 64, 64, 128, 128, 128, 256, 256, 256, 512, 512, 512]
 LES_CONV_FILTER_SIZE = [3] * len(LES_NUM_FILTERS_CONV)
-FC_LAYER_SIZE = 64
+FC_LAYER_SIZE = 128
+DATASET_PATH = '../../JPG_Scannet_Aug'
 
-EXPORTS_DIR_PATH = '/media/nas/ScanNet/From_Scratch_CNN/cv-tricks/exports/'
+# Load hyperparams from hyperparams.txt file if exists
+if True and os.path.isfile(HYPERPARAM_TXT_PATH):
+    print("Loading from " + HYPERPARAM_TXT_PATH)
+    with open(HYPERPARAM_TXT_PATH, 'r') as f:
+        for line in f:
+            if 'NUM_ITERATION' in line:
+                NUM_ITERATION = int(line.split(" = ")[-1])
+            elif 'BATCH_SIZE' in line:
+                BATCH_SIZE = int(line.split(" = ")[-1])
+            elif 'LEARNING_RATE' in line:
+                LEARNING_RATE = float(line.split(" = ")[-1])
+            elif 'SHORTER_DATASET_VALUE' in line:
+                SHORTER_DATASET_VALUE = int(line.split(" = ")[-1])
+            elif 'IMG_SIZE' in line:
+                IMG_SIZE = int(line.split(" = ")[-1])
+            elif 'FC_LAYER_SIZE' in line:
+                FC_LAYER_SIZE = int(line.split(" = ")[-1])
+            elif 'DATASET_PATH' in line:
+                DATASET_PATH = line.split(" = ")[-1].replace("\n", '').replace("'", "")
+            elif 'LES_NUM_FILTERS_CONV' in line:
+                LES_NUM_FILTERS_CONV = \
+                    list(map(int, line.replace('LES_NUM_FILTERS_CONV = [', '').replace(']', '').split(', ')))
+            elif 'LES_CONV_FILTER_SIZE' in line:
+                LES_CONV_FILTER_SIZE = \
+                    list(map(int, line.replace('LES_CONV_FILTER_SIZE = [', '').replace(']', '').split(', ')))
+
+NUM_CHANNELS = 1
+VALIDATION_PERCENTAGE = 0.2  # 20% of the data will automatically be used for validation
+DATASET_SAVE_DIR_PATH = \
+    os.getcwd() + "/" + DATASET_PATH.split("/")[-1].lower() + "_" + str(IMG_SIZE) + "_" + str(SHORTER_DATASET_VALUE)
+createFolder(DATASET_SAVE_DIR_PATH)
+EXPORTS_DIR_PATH = '/media/nas/ScanNet/From_Scratch_CNN/cv-tricks/exports'
 createFolder(EXPORTS_DIR_PATH)
-EXPORTNUM_DIR_PATH = EXPORTS_DIR_PATH + "export_" + str(getExportNumber(EXPORTS_DIR_PATH))
+EXPORTNUM_DIR_PATH = EXPORTS_DIR_PATH + "/export_" + str(getExportNumber(EXPORTS_DIR_PATH + "/"))
 createFolder(EXPORTNUM_DIR_PATH)
+MODEL_DIR_PATH = EXPORTNUM_DIR_PATH + "/model"
+createFolder(MODEL_DIR_PATH)
 INFO_TXT_PATH = EXPORTNUM_DIR_PATH + "/info.txt"
 CSV_TRAIN = EXPORTNUM_DIR_PATH + "/train.csv"
 
 if len(LES_CONV_FILTER_SIZE) != len(LES_NUM_FILTERS_CONV):
-    print("Convolutional layers params aren't the same length")
-    raise
+    print("Convolutional layers params aren't the same length. Setting to 3*3")
+    LES_CONV_FILTER_SIZE = [3] * len(LES_NUM_FILTERS_CONV)
 
 # === Global variables ===
 g_total_iterations = 0
-
-""" Default Model :
-    filter_size_conv1 = 3
-    num_filters_conv1 = 32
-
-    filter_size_conv2 = 3
-    num_filters_conv2 = 32
-
-    filter_size_conv3 = 3
-    num_filters_conv3 = 64
-
-    fc_layer_size = 128
-"""
 
 
 class ConvolutionLayer:
@@ -164,6 +177,8 @@ def show_progress(epoch, feed_dict_train, feed_dict_validate, val_loss, session,
     prefix = ""
     if milestone:
         prefix = "\t"
+    else:
+        prefix = "Saving model. "
 
     with open(CSV_TRAIN, 'a') as f:
         txt = str(i) + "\t" + str(epoch + 1) + "\t" + str(acc) + "\t" + str(val_acc) + "\t" + str(val_loss) + "\n"
@@ -181,23 +196,19 @@ def train(num_iteration, session, data, cost, saver, accuracy, optimizer, x, y_t
         print("\t" + str(i) + " : [" + str(g_total_iterations) + ", " + str(
             g_total_iterations + num_iteration) + "]. Save every " + str(int(data.train.num_examples / BATCH_SIZE)))
 
-        x_batch, y_true_batch, _, cls_batch = data.train.next_batch(BATCH_SIZE)
-        x_valid_batch, y_valid_batch, _, valid_cls_batch = data.valid.next_batch(BATCH_SIZE)
+        x_batch, y_true_batch, _, _ = data.train.next_batch(BATCH_SIZE)
+        x_valid_batch, y_valid_batch, _, _ = data.valid.next_batch(BATCH_SIZE)
 
         feed_dict_tr = {x: x_batch,
                         y_true: y_true_batch}
         feed_dict_val = {x: x_valid_batch,
                          y_true: y_valid_batch}
-
         session.run(optimizer, feed_dict=feed_dict_tr)
-
         if i % int(data.train.num_examples / BATCH_SIZE) == 0:
             val_loss = session.run(cost, feed_dict=feed_dict_val)
             epoch = int(i / int(data.train.num_examples / BATCH_SIZE))
-
             show_progress(epoch, feed_dict_tr, feed_dict_val, val_loss, session=session, accuracy=accuracy, i=i)
-            saver.save(session, EXPORTNUM_DIR_PATH + "/model")
-
+            saver.save(session, MODEL_DIR_PATH)
         elif i % 5 == 0:
             val_loss = session.run(cost, feed_dict=feed_dict_val)
             epoch = int(i / int(data.train.num_examples / BATCH_SIZE))
@@ -209,7 +220,8 @@ def train(num_iteration, session, data, cost, saver, accuracy, optimizer, x, y_t
 
 def init():
     with open(INFO_TXT_PATH, 'w') as f:
-        txt = "\nBATCH_SIZE :" + str(BATCH_SIZE) + \
+        txt = "BATCH_SIZE : " + str(BATCH_SIZE) + \
+              "\nIMG_SIZE : " + str(IMG_SIZE) + \
               "\nLEARNING_RATE : " + str(LEARNING_RATE) + \
               "\nSHORTER_DATASET_VALUE : " + str(SHORTER_DATASET_VALUE) + \
               "\nDATASET_PATH : " + str(DATASET_PATH) + \
@@ -242,12 +254,10 @@ def main():
         validation_size=VALIDATION_PERCENTAGE,
         shorter=SHORTER_DATASET_VALUE,
         num_channels=NUM_CHANNELS,
-        dataset_save_dir_path=DATASET_SAVE_DIR_PATH,
-        dataset_type=DATASET_TYPE
+        dataset_save_dir_path=DATASET_SAVE_DIR_PATH
     )
 
-
-    print("Complete reading input data. Will Now print a snippet of it")
+    print("\nComplete reading input data. Will Now print a snippet of it")
     print("Number of files in Training-set:\t\t{}".format(len(data.train.labels)))
     print("Number of files in Validation-set:\t{}".format(len(data.valid.labels)))
 
@@ -255,7 +265,7 @@ def main():
 
     # labels
     y_true = tf.placeholder(tf.float32, shape=[None, num_classes], name='y_true')
-    y_true_cls = tf.argmax(y_true, dimension=1)
+    y_true_cls = tf.argmax(y_true, axis=1)
 
     lesLayers = []
     # Adding Convolutional layers
@@ -292,7 +302,7 @@ def main():
     )
 
     y_pred = tf.nn.softmax(lesLayers[-1], name='y_pred')
-    y_pred_cls = tf.argmax(y_pred, dimension=1)
+    y_pred_cls = tf.argmax(y_pred, axis=1)
 
     session.run(tf.global_variables_initializer())
     cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=lesLayers[-1],
@@ -304,18 +314,22 @@ def main():
 
     session.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
+    try:
+        train(
+            num_iteration=NUM_ITERATION,
+            session=session,
+            data=data,
+            cost=cost,
+            saver=saver,
+            accuracy=accuracy,
+            optimizer=optimizer,
+            x=x,
+            y_true=y_true
+        )
+    except KeyboardInterrupt:
+        print("Exiting the training")
+        pass
 
-    train(
-        num_iteration=NUM_ITERATION,
-        session=session,
-        data=data,
-        cost=cost,
-        saver=saver,
-        accuracy=accuracy,
-        optimizer=optimizer,
-        x=x,
-        y_true=y_true
-    )
     session.close()
     gc.collect()  # Free not allocated memory
 
