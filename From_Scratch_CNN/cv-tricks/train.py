@@ -6,6 +6,7 @@ import numpy as np
 import os
 import sys
 import gc
+import time
 
 sys.path.append('../../')
 from tools import *
@@ -66,13 +67,11 @@ NUM_CHANNELS = 1
 VALIDATION_PERCENTAGE = 0.2  # 20% of the data will automatically be used for validation
 DATASET_SAVE_DIR_PATH = \
     os.getcwd() + "/" + DATASET_PATH.split("/")[-1].lower() + "_" + str(IMG_SIZE) + "_" + str(SHORTER_DATASET_VALUE)
-createFolder(DATASET_SAVE_DIR_PATH)
 EXPORTS_DIR_PATH = '/media/nas/ScanNet/From_Scratch_CNN/cv-tricks/exports'
 createFolder(EXPORTS_DIR_PATH)
 EXPORTNUM_DIR_PATH = EXPORTS_DIR_PATH + "/export_" + str(getExportNumber(EXPORTS_DIR_PATH + "/"))
 createFolder(EXPORTNUM_DIR_PATH)
 MODEL_DIR_PATH = EXPORTNUM_DIR_PATH + "/model"
-createFolder(MODEL_DIR_PATH)
 INFO_TXT_PATH = EXPORTNUM_DIR_PATH + "/info.txt"
 CSV_TRAIN = EXPORTNUM_DIR_PATH + "/train.csv"
 
@@ -170,13 +169,19 @@ def create_fc_layer(input, num_inputs, num_outputs, use_relu=True):
     return layer
 
 
-def show_progress(epoch, feed_dict_train, feed_dict_validate, val_loss, session, accuracy, i, milestone=False):
+def show_progress(epoch, feed_dict_train, feed_dict_validate, val_loss, session, accuracy, i, milestone=False, eta=0):
     acc = session.run(accuracy, feed_dict=feed_dict_train)
     val_acc = session.run(accuracy, feed_dict=feed_dict_validate)
     msg = "Training Epoch {0} --- Training Accuracy: {1:>6.1%}, Validation Accuracy: {2:>6.1%},  Validation Loss: {3:.3f}"
     prefix = ""
+    suffix = ""
     if milestone:
         prefix = "\t"
+        if eta != 0:
+            h = int(eta/3600)
+            min = int((eta - h * 3600)/60)
+
+            suffix = ",  ETA : " + str(h) + "h" + str(min) + "m"
     else:
         prefix = "Saving model. "
 
@@ -184,15 +189,15 @@ def show_progress(epoch, feed_dict_train, feed_dict_validate, val_loss, session,
         txt = str(i) + "\t" + str(epoch + 1) + "\t" + str(acc) + "\t" + str(val_acc) + "\t" + str(val_loss) + "\n"
         f.write(txt.replace('.', ','))
 
-    print(prefix + msg.format(epoch + 1, acc, val_acc, val_loss))
+    print(prefix + msg.format(epoch + 1, acc, val_acc, val_loss) + suffix)
 
 
 def train(num_iteration, session, data, cost, saver, accuracy, optimizer, x, y_true):
     global g_total_iterations
-
-    for i in range(g_total_iterations,
-                   g_total_iterations + num_iteration):
-
+    tic = time.time()
+    eta = 0
+    #for i in range(g_total_iterations, g_total_iterations + num_iteration):
+    for i in range(num_iteration):
         print("\t" + str(i) + " : [" + str(g_total_iterations) + ", " + str(
             g_total_iterations + num_iteration) + "]. Save every " + str(int(data.train.num_examples / BATCH_SIZE)))
 
@@ -210,24 +215,30 @@ def train(num_iteration, session, data, cost, saver, accuracy, optimizer, x, y_t
             show_progress(epoch, feed_dict_tr, feed_dict_val, val_loss, session=session, accuracy=accuracy, i=i)
             saver.save(session, MODEL_DIR_PATH)
         elif i % 5 == 0:
+            if eta == 0:
+                eta = (time.time() - tic)/5*(num_iteration-i)
+            else:
+                eta = int((eta/num_iteration + (time.time() - tic)/5)/2*(num_iteration - i))
+            tic = time.time()
             val_loss = session.run(cost, feed_dict=feed_dict_val)
             epoch = int(i / int(data.train.num_examples / BATCH_SIZE))
             show_progress(epoch, feed_dict_tr, feed_dict_val, val_loss, session=session, accuracy=accuracy, i=i,
-                          milestone=True)
+                          milestone=True, eta=eta)
 
     g_total_iterations += num_iteration
 
 
 def init():
     with open(INFO_TXT_PATH, 'w') as f:
-        txt = "BATCH_SIZE : " + str(BATCH_SIZE) + \
-              "\nIMG_SIZE : " + str(IMG_SIZE) + \
-              "\nLEARNING_RATE : " + str(LEARNING_RATE) + \
-              "\nSHORTER_DATASET_VALUE : " + str(SHORTER_DATASET_VALUE) + \
-              "\nDATASET_PATH : " + str(DATASET_PATH) + \
-              "\nLES_CONV_FILTER_SIZE : " + str(LES_CONV_FILTER_SIZE) + \
-              "\nLES_NUM_FILTERS_CONV : " + str(LES_NUM_FILTERS_CONV) + \
-              "\nFC_LAYER_SIZE : " + str(FC_LAYER_SIZE)
+        txt = "NUM_ITERATION = " + str(NUM_ITERATION) + \
+              "\nBATCH_SIZE = " + str(BATCH_SIZE) + \
+              "\nLEARNING_RATE = " + str(LEARNING_RATE) + \
+              "\nSHORTER_DATASET_VALUE = " + str(SHORTER_DATASET_VALUE) + \
+              "\nIMG_SIZE = " + str(IMG_SIZE) + \
+              "\nDATASET_PATH = " + str(DATASET_PATH) + \
+              "\nLES_CONV_FILTER_SIZE = " + str(LES_CONV_FILTER_SIZE) + \
+              "\nLES_NUM_FILTERS_CONV = " + str(LES_NUM_FILTERS_CONV) + \
+              "\nFC_LAYER_SIZE = " + str(FC_LAYER_SIZE)
         f.write(txt)
     with open(CSV_TRAIN, 'w') as f:
         f.write("Iteration\tEpoch\tTraining Accuracy\tValidation Accuracy\tValidation Loss\n")

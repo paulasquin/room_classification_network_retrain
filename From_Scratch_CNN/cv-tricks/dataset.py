@@ -4,6 +4,10 @@ import glob
 from sklearn.utils import shuffle
 import numpy as np
 import gc
+import sys
+
+sys.path.append('../../')
+from tools import *
 
 np.set_printoptions(threshold=np.inf)
 
@@ -161,6 +165,7 @@ def read_train_sets(train_path, image_size, classes, validation_size, shorter=0,
         images, labels, img_names, cls = shuffle(images, labels, img_names, cls)
         print("\nTry to write the dataset into the folder" + dataset_save_dir_path)
         try:
+            createFolder(dataset_save_dir_path)
             np.save(lesArrayPath[0], images)
             np.save(lesArrayPath[1], labels)
             np.save(lesArrayPath[2], img_names)
