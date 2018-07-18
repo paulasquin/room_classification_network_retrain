@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import dataset
 import train
 import tensorflow as tf

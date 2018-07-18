@@ -28,7 +28,7 @@ LES_SCRIPTS = [
         "Slicing the Matterport dataset"
     ),
     Script(
-        "python3 dataset_inception_retrain.py",
+        "python3 dataset_retrain.py",
         "Retraining inception using previous transformed datasets. You have to enter Ctrl+C to stop the training"
     )
 ]

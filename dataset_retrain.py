@@ -7,7 +7,7 @@ import os
 import subprocess
 
 TENSOR_FOLDER = "tensorflow"
-IMAGE_DIR = "JPG_Scannet_Matterport"
+IMAGE_DIR = "JPG_Scannet_Matterport_Tri_Aug"
 TENSORBOARD_PATH = "~/.local/lib/python3.5/site-packages/tensorboard/main.py"
 
 
@@ -26,10 +26,10 @@ def runRetrain():
           " --saved_model_dir " + exportPath + "/model/" + \
           " --validation_batch_size -1" + \
           " --print_misclassified_test_images True" + \
-          " --how_many_training_steps 20000" + \
+          " --how_many_training_steps 8000" + \
           " --path_mislabeled_names " + exportPath + \
           " --bottleneck_dir /media/nas/Tensorflow/bottleneck/" + IMAGE_DIR + \
-          " --summaries_dir /tmp/retrain_logs2/" + \
+          " --summaries_dir /tmp/retrain_logs/" + \
           " --train_maximum True"  + \
           " --validation_percentage 5" + \
           " --testing_percentage 5" + \
@@ -41,11 +41,11 @@ def runRetrain():
     # " --output_graph " + tensorFolder + "/scannet_inception.db" + \
     # " --output_labels " + tensorFolder + "/scannet_labels.txt"
     print(cmd)
+    with open(exportPath + "/cmd.txt", 'w') as f:
+        f.write(cmd + "\n")
     p = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True)
     out, err = p.communicate()
     print(out.decode('utf-8'))
-    with open(exportPath + "/cmd.txt", 'w') as f:
-        f.write(cmd + "\n")
     return 0
 
 

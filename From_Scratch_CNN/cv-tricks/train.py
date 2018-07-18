@@ -1,3 +1,15 @@
+#!/usr/bin/env python
+
+# This project use the structure of the cv-tricks tutorial on Image Classification :
+# http://cv-tricks.com/tensorflow-tutorial/training-convolutional-neural-network-for-image-classification/
+# The scripts have been modified by Paul ASQUIN for a Room Classification project based on rooms 2D Maps
+
+__author__ = "Paul Asquin"
+__version__ = "1.0"
+__maintainer__ = "Paul Asquin"
+__email__ = "paul.asquin@gmail.com"
+__status__ = "Research"
+
 import dataset
 import tensorflow as tf
 import math
@@ -169,7 +181,7 @@ def create_fc_layer(input, num_inputs, num_outputs, use_relu=True):
     return layer
 
 
-def show_progress(epoch, feed_dict_train, feed_dict_validate, val_loss, session, accuracy, i, milestone=False, eta=0):
+def show_progress(epoch, feed_dict_train, feed_dict_validate, val_loss, session, accuracy, i, milestone=False, time_left=0):
     acc = session.run(accuracy, feed_dict=feed_dict_train)
     val_acc = session.run(accuracy, feed_dict=feed_dict_validate)
     msg = "Training Epoch {0} --- Training Accuracy: {1:>6.1%}, Validation Accuracy: {2:>6.1%},  Validation Loss: {3:.3f}"
@@ -177,11 +189,11 @@ def show_progress(epoch, feed_dict_train, feed_dict_validate, val_loss, session,
     suffix = ""
     if milestone:
         prefix = "\t"
-        if eta != 0:
-            h = int(eta/3600)
-            min = int((eta - h * 3600)/60)
+        if time_left != 0:
+            h = int(time_left / 3600)
+            min = int((time_left - h * 3600) / 60)
 
-            suffix = ",  ETA : " + str(h) + "h" + str(min) + "m"
+            suffix = ",  Time Left : " + str(h) + "h" + str(min) + "m"
     else:
         prefix = "Saving model. "
 
@@ -195,8 +207,8 @@ def show_progress(epoch, feed_dict_train, feed_dict_validate, val_loss, session,
 def train(num_iteration, session, data, cost, saver, accuracy, optimizer, x, y_true):
     global g_total_iterations
     tic = time.time()
-    eta = 0
-    #for i in range(g_total_iterations, g_total_iterations + num_iteration):
+    time_left = 0
+    # for i in range(g_total_iterations, g_total_iterations + num_iteration):
     for i in range(num_iteration):
         print("\t" + str(i) + " : [" + str(g_total_iterations) + ", " + str(
             g_total_iterations + num_iteration) + "]. Save every " + str(int(data.train.num_examples / BATCH_SIZE)))
@@ -215,15 +227,15 @@ def train(num_iteration, session, data, cost, saver, accuracy, optimizer, x, y_t
             show_progress(epoch, feed_dict_tr, feed_dict_val, val_loss, session=session, accuracy=accuracy, i=i)
             saver.save(session, MODEL_DIR_PATH)
         elif i % 5 == 0:
-            if eta == 0:
-                eta = (time.time() - tic)/5*(num_iteration-i)
+            if time_left == 0:
+                time_left = (time.time() - tic) / 5 * (num_iteration - i)
             else:
-                eta = int((eta/num_iteration + (time.time() - tic)/5)/2*(num_iteration - i))
+                time_left = int((time_left / num_iteration + (time.time() - tic) / 5) / 2 * (num_iteration - i))
             tic = time.time()
             val_loss = session.run(cost, feed_dict=feed_dict_val)
             epoch = int(i / int(data.train.num_examples / BATCH_SIZE))
             show_progress(epoch, feed_dict_tr, feed_dict_val, val_loss, session=session, accuracy=accuracy, i=i,
-                          milestone=True, eta=eta)
+                          milestone=True, time_left=time_left)
 
     g_total_iterations += num_iteration
 
