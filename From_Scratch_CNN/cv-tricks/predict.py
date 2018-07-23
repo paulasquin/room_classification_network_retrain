@@ -10,6 +10,8 @@ import sys, argparse
 sys.path.append('../../')
 from tools import *
 
+IMG_SIZE = 256
+NUM_CHANNELS = 1
 def main():
 
     # === Open and process image ===
@@ -18,8 +20,10 @@ def main():
     image_path = sys.argv[1]
     if image_path[0] != "/":
         image_path = dir_path + '/' + image_path
-    image_size = train.IMG_SIZE
-    num_channels = train.NUM_CHANNELS
+    # image_size = train.IMG_SIZE
+    # num_channels = train.NUM_CHANNELS
+    image_size = IMG_SIZE
+    num_channels = NUM_CHANNELS
     images = []
     image = dataset.read_image(filename=image_path, image_size=image_size, num_channels=num_channels)
     images.append(image)
@@ -32,7 +36,7 @@ def main():
     print("Choose a model : ")
     for i, meta_path in enumerate(les_meta_path):
         print("\n\n" + str(i) + " : " + str(meta_path))
-        info_txt_path = str('/'.join(meta_path.split("/")[:-2]) + "/info.txt")
+        info_txt_path = str('/'.join(meta_path.split("/")[:-1]) + "/info.txt")
         print(info_txt_path)
         try:
             with open(info_txt_path, 'r') as f:
@@ -68,13 +72,17 @@ def main():
     ## Let's feed the images to the input placeholders
     x = graph.get_tensor_by_name("x:0")
     y_true = graph.get_tensor_by_name("y_true:0")
-    y_test_images = np.zeros((1, len(os.listdir('training_data'))))
-
+    #y_test_images = np.zeros((1, len(os.listdir('training_data'))))
+    les_labels = ['Bathroom', 'Bedroom', 'Kitchen', 'Living Room']
+    y_test_images = np.zeros((1, len(les_labels)))
     ### Creating the feed_dict that is required to be fed to calculate y_pred
     feed_dict_testing = {x: x_batch, y_true: y_test_images}
     result = sess.run(y_pred, feed_dict=feed_dict_testing)
+    print(result[0])
     # result is of this format [probabiliy_of_rose probability_of_sunflower]
-    print(result)
+    print("Prediction : ")
+    for i in range(len(result[0])):
+        print("\t" + les_labels[i] + " : " + str('{0:f}'.format(round(result[0][i]*100, 5))) + "%")
 
 
 if __name__ == '__main__':
