@@ -8,7 +8,7 @@ import subprocess
 
 TENSOR_FOLDER = "tensorflow"
 createFolder(TENSOR_FOLDER)
-DATASET_PATH = "../Datasets/JPG_Matterport_0.2"
+DATASET_PATH = "../Datasets/JPG"
 TRAIN_STEP = 8000
 
 
@@ -34,12 +34,7 @@ def runRetrain():
           " --validation_percentage 5" + \
           " --testing_percentage 5" #+ \
           #" --tfhub_module 'https://tfhub.dev/google/imagenet/pnasnet_large/classification/2'" # https://tfhub.dev/google/imagenet/inception_resnet_v2/classification/1'" #
-    # " --learning_rate 0.05" #+ \
-    # /tmp/retrain_logs/
 
-    # " --flip_left_right" + \
-    # " --output_graph " + tensorFolder + "/scannet_inception.db" + \
-    # " --output_labels " + tensorFolder + "/scannet_labels.txt"
     print(cmd)
     with open(exportPath + "/cmd.txt", 'w') as f:
         f.write(cmd + "\n")
